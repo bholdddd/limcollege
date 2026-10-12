@@ -451,6 +451,49 @@ textarea.inp{resize:vertical;min-height:90px;line-height:1.5}
   .board .c-rank, .board .c-solved{display:none}
   .stakes b{font-size:var(--t-sm)}
 }
+/* ---------- seasons ---------- */
+.nc{font-weight:inherit}
+.nc-lim{background:linear-gradient(90deg,#6cc9ff,#c49bff,#ffc857);-webkit-background-clip:text;background-clip:text;color:transparent}
+.seasons{gap:14px}
+.season-live{display:grid;gap:12px}
+.season-live .panel-head{margin:0}
+.sl-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.sl-grid > div{display:grid;gap:2px;align-content:start;min-width:0}
+.sl-grid b{font-size:var(--t-lg);font-weight:700}
+.sl-grid small{font-size:var(--t-xs)}
+.sl-rank{display:flex;align-items:center;gap:6px}
+.sl-rank svg{width:20px;height:22px;flex:none}
+.sbadges{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.sbadge{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;cursor:pointer;color:var(--fg);text-align:left;
+  background:var(--bg-1);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 9%,transparent),transparent 70%),var(--bg-1)}
+.sbadge:hover{border-color:var(--line-2);border-color:color-mix(in srgb,var(--tc) 55%,var(--line))}
+.sbadge[aria-expanded="true"]{border-color:var(--tc);box-shadow:0 0 0 1px var(--tc) inset}
+.sbadge svg{width:42px;height:46px;flex:none}
+.sb-txt{display:grid;gap:1px;min-width:0}
+.sb-s{font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.1em;color:var(--fg-3)}
+.sb-txt b{color:var(--tc);font-weight:700}
+.sb-txt small{color:var(--fg-3);font-size:var(--t-xs)}
+.sdetail{display:grid;gap:12px;border-color:var(--line-2);border-color:color-mix(in srgb,var(--tc) 45%,var(--line));max-width:520px}
+.sdetail .panel-head{margin:0}
+.sd-rank{display:flex;align-items:center;gap:14px}
+.sd-rank svg{width:52px;height:57px;flex:none}
+.sd-rank > div{display:grid;gap:2px}
+.sd-rank b{font-size:var(--t-xl);font-weight:800}
+.nc-opts{display:flex;flex-wrap:wrap;gap:8px}
+.nc-opt{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:7px 12px 7px 10px;cursor:pointer;background:var(--bg);min-width:0}
+.nc-opt:hover{border-color:var(--line-2)}
+.nc-opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.nc-opt:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.nc-opt input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.nc-opt.locked{opacity:.42;cursor:not-allowed}
+.nc-sw{width:12px;height:12px;border-radius:50%;flex:none}
+.nc-t{display:grid;line-height:1.3;min-width:0}
+.nc-t > span{font-size:var(--t-sm);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nc-t small{font-size:11px;color:var(--fg-3)}
+@media (max-width: 640px){
+  .sl-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sbadges{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+}
 /* ---------- training ---------- */
 .tr-topics{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
 .tr-focus{color:var(--accent) !important;border-color:rgba(108,201,255,.45) !important;background:var(--accent-soft) !important}
@@ -635,6 +678,72 @@ function emblem(t, cls = "") {
 }
 const tierColor = t => t === 8 ? "#e9e3ff" : TIERS[t].c;
 
+/* ============================== seasons ============================== */
+/* Season n is the n-th calendar month (UTC) from October 2026. When a month ends, a player with at least one
+   rated result in it keeps a badge with the rank they finished on. Each badge unlocks that rank's colour for
+   their username. Ratings carry over: nothing resets. */
+const SEASON_Y = 2026, SEASON_M = 9;
+const TIER_KEYS = ["iron", "bronze", "silver", "gold", "platinum", "emerald", "master", "grandmaster", "limitless"];
+const seasonStart = n => Date.UTC(SEASON_Y, SEASON_M + n - 1, 1);
+const seasonEnd = n => seasonStart(n + 1);
+const seasonNow = (t = Date.now()) => { const d = new Date(t); return (d.getUTCFullYear() - SEASON_Y) * 12 + d.getUTCMonth() - SEASON_M + 1; };
+const seasonLabel = n => L(`Season ${n}`, `Época ${n}`);
+const seasonMonth = (n, short) => short
+  ? new Date(seasonStart(n)).toLocaleDateString(LOCALE(), { month: "short", timeZone: "UTC" }) + " " + new Date(seasonStart(n)).getUTCFullYear()
+  : new Date(seasonStart(n)).toLocaleDateString(LOCALE(), { month: "long", year: "numeric", timeZone: "UTC" });
+const seasonEndText = n => new Date(seasonEnd(n)).toLocaleString(LOCALE(), { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+function untilText(ms) {
+  const d = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5), m = Math.max(1, Math.ceil(ms / 6e4));
+  return d >= 2 ? L(`${d} days`, `${d} dias`) : h >= 2 ? L(`${h} hours`, `${h} horas`) : L(`${m} min`, `${m} min`);
+}
+/* stats for season n from the rated history: null if there was no rated result that month */
+function seasonStats(n, hist = S.hist) {
+  const a = seasonStart(n), b = seasonEnd(n);
+  const E = hist.filter(h => h && h.t >= a && h.t < b && Number.isFinite(h.r));
+  if (!E.length) return null;
+  const s0 = E[0].r - (Number.isFinite(E[0].d) ? E[0].d : 0), r = E[E.length - 1].r;
+  let pk = s0;
+  for (const h of E) if (h.r > pk) pk = h.r;
+  const w = E.filter(h => h.o === "w").length, k = rankOf(r);
+  return { n, t: k.t, i: k.i, r, s: s0, pk, w, l: E.length - w };
+}
+/* badges as stored or published, newest first; anything malformed is dropped */
+function cleanSeasons(a) {
+  const ok = v => typeof v === "number" && Number.isFinite(v);
+  return (Array.isArray(a) ? a : []).filter(b => b && Number.isInteger(b.n) && b.n >= 1 && Number.isInteger(b.t) && b.t >= 0 && b.t < TIERS.length && ok(b.r))
+    .map(b => ({ n: b.n, t: b.t, i: Number.isInteger(b.i) && b.i >= b.t * 3 && b.i < b.t * 3 + 3 ? b.i : b.t * 3, r: Math.round(b.r), s: ok(b.s) ? Math.round(b.s) : Math.round(b.r),
+      pk: ok(b.pk) ? Math.round(b.pk) : Math.round(b.r), w: ok(b.w) ? Math.max(0, Math.round(b.w)) : 0, l: ok(b.l) ? Math.max(0, Math.round(b.l)) : 0 }))
+    .sort((x, y) => y.n - x.n).slice(0, 120);
+}
+const badgeLabel = b => TIERS[b.t].name + " " + DIVS[b.i % 3];
+const earnedTiers = () => new Set(cleanSeasons(S.seasons).map(b => b.t));
+const myNameColor = () => { const t = TIER_KEYS.indexOf(S.profile.nameColor); return t >= 0 && earnedTiers().has(t) ? TIER_KEYS[t] : ""; };
+/* a username in its rank colour (Limitless gets the gradient) */
+function nameSpan(text, key) {
+  const t = TIER_KEYS.indexOf(key);
+  if (t < 0) return esc(text);
+  return t === 8 ? `<span class="nc nc-lim">${esc(text)}</span>` : `<span class="nc" style="color:${TIERS[t].c}">${esc(text)}</span>`;
+}
+/* turn every finished month with rated play into a badge; runs on each page view once the account has loaded.
+   It never bumps S.updated, so a stale copy can't win a sync just because it was finalized */
+function finalizeSeasons() {
+  const cur = seasonNow();
+  if (!Array.isArray(S.seasons)) S.seasons = [];
+  const have = new Set(S.seasons.map(b => b && b.n)), got = [];
+  for (let n = 1; n < cur; n++) {
+    if (have.has(n)) continue;
+    const b = seasonStats(n);
+    if (b) { S.seasons.push(b); got.push(b); }
+  }
+  if (!got.length) return;
+  S.seasons.sort((x, y) => x.n - y.n);
+  lsSet(LS_KEY, S);
+  cloud.queue();
+  const b = got[got.length - 1], firstColour = earnedTiers().size === 1 && S.seasons.length === got.length;
+  toast(L(`${seasonLabel(b.n)} is over: you finished ${badgeLabel(b)}. The badge is on your profile${firstColour ? ", and you can now colour your name in Edit profile" : ""}.`,
+    `A ${seasonLabel(b.n)} terminou: acabou em ${badgeLabel(b)}. O emblema está no seu perfil${firstColour ? ", e já pode colorir o seu nome em Editar perfil" : ""}.`));
+}
+
 /* ============================== state ============================== */
 const LS_KEY = "limcollege:v1", UI_KEY = "limcollege:ui";
 const fresh = () => ({ v: 2, rating: START, peak: START, n: 0, hist: [], probs: {}, seen: {}, updated: 0, joined: 0, recent: [], profile: { username: "", bio: "", school: "", year: "", socials: {}, avatar: "", avatarV: 0 } });
@@ -718,16 +827,19 @@ const claudeDriver = {
 };
 
 const LEAN = "id,handle,username,school,year,rating,peak,solved,has_avatar,avv";
+/* seasons live in two newer columns; until the database has them the site keeps working without them */
+const LEAN_NC = LEAN + ",name_color";
+const SEASON_COLS = /\b(seasons|name_color)\b/;
 const toRow = (uid, d) => ({ id: uid, handle: d.handle, username: d.username, bio: d.bio, school: d.school, year: d.year, socials: d.socials,
   has_avatar: d.hasAvatar, avv: d.avv, rating: d.rating, peak: d.peak, solved: d.solved, solved_by: d.solvedBy, n: d.n, hist: d.hist,
-  recent: d.recent, mastery: d.mastery, cs: d.cs, joined: d.joined, updated: d.updated });
+  recent: d.recent, mastery: d.mastery, cs: d.cs, joined: d.joined, updated: d.updated, seasons: d.seasons, name_color: d.nameColor || "" });
 const fromRow = r => ({ id: r.id, handle: r.handle, username: r.username, bio: r.bio, school: r.school, year: r.year, socials: r.socials,
   hasAvatar: r.has_avatar, avv: r.avv, rating: r.rating, peak: r.peak, solved: r.solved, solvedBy: r.solved_by, n: r.n, hist: r.hist,
-  recent: r.recent, mastery: r.mastery, cs: r.cs, joined: r.joined, updated: r.updated, full: "hist" in r });
+  recent: r.recent, mastery: r.mastery, cs: r.cs, joined: r.joined, updated: r.updated, seasons: r.seasons, nameColor: r.name_color || "", full: "hist" in r });
 const sbErr = error => { const e = new Error(error.message || "request failed"); e.code = error.code === "23505" ? "handle_taken" : (error.code || "error"); return e; };
 
 const supaDriver = {
-  sb: null, refreshTimer: 0,
+  sb: null, refreshTimer: 0, noSeason: false,
   configured() { return !!(CFG.supabaseUrl && CFG.supabaseAnonKey && !/YOUR[-_]/i.test(CFG.supabaseUrl + CFG.supabaseAnonKey) && window.supabase && window.supabase.createClient); },
   async connect(c) {
     if (!this.configured()) return false;
@@ -750,7 +862,9 @@ const supaDriver = {
   },
   async refreshBoard(c) {
     try {
-      const { data, error } = await this.sb.from("players").select(LEAN).order("rating", { ascending: false }).limit(1000);
+      const q = cols => this.sb.from("players").select(cols).order("rating", { ascending: false }).limit(1000);
+      let { data, error } = await q(this.noSeason ? LEAN : LEAN_NC);
+      if (error && !this.noSeason && SEASON_COLS.test(error.message || "")) { this.noSeason = true; ({ data, error } = await q(LEAN)); }
       if (error) c.boardErr = !c.board; else { c.board = data.map(fromRow); c.boardErr = false; }
     } catch { c.boardErr = !c.board; }
     onBoard();
@@ -762,7 +876,13 @@ const supaDriver = {
     return data ? data.state : null;
   },
   async saveState(uid, state) { const { error } = await this.sb.from("progress").upsert({ id: uid, state, updated_at: new Date().toISOString() }); if (error) throw sbErr(error); },
-  async savePublic(uid, doc) { const { error } = await this.sb.from("players").upsert(toRow(uid, doc)); if (error) throw sbErr(error); },
+  async savePublic(uid, doc) {
+    const row = toRow(uid, doc), strip = () => { delete row.seasons; delete row.name_color; };
+    if (this.noSeason) strip();
+    let { error } = await this.sb.from("players").upsert(row);
+    if (error && !this.noSeason && SEASON_COLS.test(error.message || "")) { this.noSeason = true; strip(); ({ error } = await this.sb.from("players").upsert(row)); }
+    if (error) throw sbErr(error);
+  },
   async saveAvatar(uid, a) {
     const q = a ? this.sb.from("avatars").upsert({ id: uid, img: a.img, v: a.v }) : this.sb.from("avatars").delete().eq("id", uid);
     const { error } = await q; if (error) throw sbErr(error);
@@ -837,7 +957,8 @@ const cloud = {
       socials: Object.assign({}, pr.socials || {}), hasAvatar: !!pr.avatar, avv: pr.avatarV || 0,
       rating: S.rating, peak: S.peak, solved: solvedCount(), solvedBy, n: S.n,
       hist: S.hist.slice(-120).map(h => h.r), recent: S.recent.slice(-8), mastery: masteryOf(S.hist).R, cs: conceptSolved(),
-      joined: S.joined || S.updated || Date.now(), updated: S.updated
+      joined: S.joined || S.updated || Date.now(), updated: S.updated,
+      seasons: cleanSeasons(S.seasons), nameColor: myNameColor()
     };
   },
   async handleTaken(h) {
@@ -1162,7 +1283,7 @@ function renderNav() {
   const nr = document.getElementById("navRank");
   const signin = cloud.kind === "supabase" && !cloud.uid;
   nr.setAttribute("href", signin ? "#login" : "#me");
-  nr.innerHTML = `${avatarImg(myRow(), 22)}<span class="nm">${signin ? L("Sign in", "Entrar") : S.profile.username ? "@" + esc(S.profile.username) : L("Profile", "Perfil")}</span>${emblem(rk.t)}<span class="num" style="color:${tierColor(rk.t)}">${S.rating}</span>`;
+  nr.innerHTML = `${avatarImg(myRow(), 22)}<span class="nm">${signin ? L("Sign in", "Entrar") : S.profile.username ? nameSpan("@" + S.profile.username, myNameColor()) : L("Profile", "Perfil")}</span>${emblem(rk.t)}<span class="num" style="color:${tierColor(rk.t)}">${S.rating}</span>`;
   nr.querySelector("svg").style.cssText = "width:16px;height:18px";
   nr.setAttribute("aria-label", L(`Your profile: ${rk.label}, rating ${S.rating}`, `O seu perfil: ${rk.label}, rating ${S.rating}`));
   if (current === "me" || current === "login") nr.setAttribute("aria-current", "page"); else nr.removeAttribute("aria-current");
@@ -1185,7 +1306,8 @@ function rankCard() {
       <span>${L("Peak rating", "Rating máximo")}</span><b class="num">${S.peak}</b>
       <span>${L("Problems solved", "Problemas resolvidos")}</span><b class="num">${solved} / ${PROBS.length}</b>
       <span>${L("K-factor", "Fator K")}</span><b class="num">${kFactor(S.n)}${S.n < 10 ? L(" · placement", " · colocação") : ""}</b>
-      <span>${L("Profile", "Perfil")}</span><b><a href="#me">${S.profile.username ? "@" + esc(S.profile.username) : L("set it up", "configurar")}</a></b>
+      <span>${L("Profile", "Perfil")}</span><b><a href="#me">${S.profile.username ? nameSpan("@" + S.profile.username, myNameColor()) : L("set it up", "configurar")}</a></b>
+      ${seasonNow() >= 1 ? `<span>${seasonLabel(seasonNow())}</span><b class="num">${L(`ends in ${untilText(seasonEnd(seasonNow()) - Date.now())}`, `termina daqui a ${untilText(seasonEnd(seasonNow()) - Date.now())}`)}</b>` : ""}
     </div>
     <div class="strip" aria-hidden="true">${strip}</div>
   </section>`;
@@ -2159,19 +2281,33 @@ function renderRanks() {
     </div>
   </section>
   <section class="section">
+    <h2>${L("Seasons", "Épocas")}</h2>
+    <div class="prose">${L(`
+      <p>Every calendar month is a season, starting with <strong>Season 1 in October 2026</strong>. Seasons change at midnight UTC on the 1st.</p>
+      <p>When a season ends, everyone with at least one rated result that month keeps a <strong>badge</strong> on their profile showing the rank they finished on. Click a badge to see that season's stats: rating change, problems solved, misses and peak.</p>
+      <p>Each badge also unlocks that rank's <strong>colour for your username</strong> on the leaderboard, in search and on your profile. Choose it in Edit profile.</p>
+      <p>Ratings carry over from one season to the next; nothing resets.</p>`, `
+      <p>Cada mês é uma época, a começar pela <strong>Época 1, em outubro de 2026</strong>. As épocas mudam à meia-noite UTC do dia 1.</p>
+      <p>Quando uma época acaba, todos os que tiveram pelo menos um resultado com rating nesse mês ficam com um <strong>emblema</strong> no perfil com o escalão em que terminaram. Clique num emblema para ver as estatísticas dessa época: variação do rating, problemas resolvidos, erros e máximo.</p>
+      <p>Cada emblema desbloqueia também a <strong>cor desse escalão para o seu nome</strong> na classificação, na pesquisa e no perfil. Escolha-a em Editar perfil.</p>
+      <p>O rating passa de uma época para a seguinte; nada é reposto.</p>`)}
+      ${seasonNow() >= 1 ? `<p class="muted">${L(`${seasonLabel(seasonNow())} (${esc(seasonMonth(seasonNow()))}) ends in ${untilText(seasonEnd(seasonNow()) - Date.now())}.`, `A ${seasonLabel(seasonNow())} (${esc(seasonMonth(seasonNow()))}) termina daqui a ${untilText(seasonEnd(seasonNow()) - Date.now())}.`)} <a href="#me">${L("Your season so far →", "A sua época até agora →")}</a></p>` : ""}
+    </div>
+  </section>
+  <section class="section">
     <h2>${L("Problem ratings by track", "Rating dos problemas por percurso")}</h2>
     <div class="ktable">${bands}</div>
   </section>
   <section class="section">
     <h2>${L("Reset", "Recomeçar")}</h2>
-    <p>${L(`Start over from ${START} with a clean slate. This erases your rating history and every attempt.`, `Recomece do zero, em ${START}. Isto apaga o seu histórico de rating e todas as tentativas.`)}</p>
+    <p>${L(`Start over from ${START} with a clean slate. This erases your rating history and every attempt. Season badges you've already earned are kept.`, `Recomece do zero, em ${START}. Isto apaga o seu histórico de rating e todas as tentativas. Os emblemas de época que já ganhou ficam.`)}</p>
     <div id="resetBox" class="actions"><button class="btn danger" id="reset" type="button">${L("Reset my progress", "Apagar o meu progresso")}</button></div>
   </section>`;
   typeset(app);
   document.getElementById("reset").addEventListener("click", () => {
     const box = document.getElementById("resetBox");
     box.innerHTML = `<div class="confirm" style="width:100%;max-width:520px"><span>${L("This can't be undone. Reset everything?", "Isto não pode ser desfeito. Apagar tudo?")}</span><div class="actions"><button class="btn danger" id="rY" type="button">${L("Yes, reset", "Sim, apagar")}</button><button class="btn ghost" id="rN" type="button">${L("Cancel", "Cancelar")}</button></div></div>`;
-    document.getElementById("rY").addEventListener("click", () => { const owner = S.owner, lang = S.lang; S = fresh(); if (owner) S.owner = owner; if (lang) S.lang = lang; lastResult = null; save(); toast(L("Progress reset. Welcome back to Iron.", "Progresso apagado. Bem-vindo de volta ao Ferro.")); route(); });
+    document.getElementById("rY").addEventListener("click", () => { const owner = S.owner, lang = S.lang, seasons = S.seasons; S = fresh(); if (owner) S.owner = owner; if (lang) S.lang = lang; if (Array.isArray(seasons)) S.seasons = seasons; lastResult = null; save(); toast(L("Progress reset. Welcome back to Iron.", "Progresso apagado. Bem-vindo de volta ao Ferro.")); route(); });
     document.getElementById("rN").addEventListener("click", () => route());
   });
 }
@@ -2328,7 +2464,7 @@ function setupPlayerSearch() {
     else {
       const m = playerMatches(q, 6);
       html = m.length
-        ? m.map(r => { const k = rankOf(r.rating); return `<a class="ps-item" role="option" aria-selected="false" href="#u-${esc(r.handle)}">${avatarImg(r, 28)}<span class="nm">@${esc(rowName(r))}<small>${esc(subline(r) || L("No school listed", "Sem escola indicada"))}</small></span><span class="rp num">${emblem(k.t)}<span style="color:${tierColor(k.t)}">${r.rating}</span></span></a>`; }).join("") + `<a class="ps-item ps-all" role="option" aria-selected="false" href="#board" data-all="1">${L("All matches on the leaderboard →", "Todos os resultados na classificação →")}</a>`
+        ? m.map(r => { const k = rankOf(r.rating); return `<a class="ps-item" role="option" aria-selected="false" href="#u-${esc(r.handle)}">${avatarImg(r, 28)}<span class="nm">${nameSpan("@" + rowName(r), r.id === cloud.uid ? myNameColor() : r.nameColor)}<small>${esc(subline(r) || L("No school listed", "Sem escola indicada"))}</small></span><span class="rp num">${emblem(k.t)}<span style="color:${tierColor(k.t)}">${r.rating}</span></span></a>`; }).join("") + `<a class="ps-item ps-all" role="option" aria-selected="false" href="#board" data-all="1">${L("All matches on the leaderboard →", "Todos os resultados na classificação →")}</a>`
         : `<div class="ps-empty">${L(`No players match “${esc(q.trim())}”.`, `Nenhum jogador corresponde a “${esc(q.trim())}”.`)}</div>`;
     }
     pop.innerHTML = html; pop.hidden = false; inp.setAttribute("aria-expanded", "true");
@@ -2392,7 +2528,7 @@ function drawBoardRows() {
     const k = rankOf(r.rating), h = typeof r.handle === "string" && /^[a-z0-9_.-]{3,20}$/.test(r.handle) ? r.handle : "";
     return `<tr class="${r.id === cloud.uid ? "me" : ""}" ${h ? `data-h="${esc(h)}" tabindex="0" aria-label="${L(`Open @${esc(rowName(r))}'s profile`, `Abrir o perfil de @${esc(rowName(r))}`)}"` : ""}>
       <td class="num">${pos.get(r.id)}</td>
-      <td><span class="who">${avatarImg(r, 32)}<span class="whot"><span class="nm">@${esc(rowName(r))}${r.id === cloud.uid ? ` <em class="you">${L("you", "você")}</em>` : ""}</span><small>${esc(subline(r))}</small></span></span></td>
+      <td><span class="who">${avatarImg(r, 32)}<span class="whot"><span class="nm">${nameSpan("@" + rowName(r), r.id === cloud.uid ? myNameColor() : r.nameColor)}${r.id === cloud.uid ? ` <em class="you">${L("you", "você")}</em>` : ""}</span><small>${esc(subline(r))}</small></span></span></td>
       <td class="c-rank"><span class="rp">${emblem(k.t)}<span style="color:${tierColor(k.t)}">${esc(k.label)}</span></span></td>
       <td class="num">${r.rating}</td><td class="num c-solved">${numOr(r.solved, 0)}</td></tr>`;
   }).join("");
@@ -2439,7 +2575,7 @@ function renderProfile(handle) {
     <div class="prof-head">
       ${avatarImg(isMe ? myRow() : r, 104, "av-xl")}
       <div class="prof-id">
-        <h1>@${esc(name)}</h1>
+        <h1>${nameSpan("@" + name, isMe ? myNameColor() : r.nameColor)}</h1>
         <div class="prof-rank">${emblem(k.t)}<b style="color:${tierColor(k.t)}">${esc(k.label)}</b><span class="num">${rating} rating</span><span class="num muted">${L("peak", "máximo")} ${peak}</span>${posIdx >= 0 ? `<span class="num muted">${L(`#${posIdx + 1} on the ladder`, `#${posIdx + 1} na escada`)}</span>` : ""}</div>
         <div class="prof-meta">${school ? `<span>${L("studies at", "estuda em")} <b>${esc(school)}</b></span>` : ""}${year ? `<span><b>${esc(year)}</b></span>` : ""}${joined ? `<span>${L("joined", "entrou em")} ${esc(joined)}</span>` : ""}</div>
       </div>
@@ -2456,6 +2592,7 @@ function renderProfile(handle) {
       <section class="panel" aria-label="${L("Rating history", "Histórico de rating")}"><div class="panel-head"><h3>${L("Rating history", "Histórico de rating")}</h3><span class="muted" style="font-size:var(--t-xs)">${L(`last ${Math.max(0, series.length - 1)} results`, `últimos ${Math.max(0, series.length - 1)} resultados`)}</span></div><div class="chart-wrap" id="pchart"></div></section>
     </div>
   </section>
+  ${seasonsSection(r, isMe)}
   <section class="section">${masteryPanel(isMe ? masteryOf(S.hist).R : (r.mastery && typeof r.mastery === "object" ? r.mastery : {}), isMe ? conceptSolved() : (r.cs && typeof r.cs === "object" ? r.cs : {}), isMe)}</section>
   <section class="section">
     <h2>${L("Recent solves", "Resolvidos recentemente")}</h2>
@@ -2468,6 +2605,66 @@ function renderProfile(handle) {
   redrawChart = () => drawChart("pchart", series, emptyMsg);
   redrawChart();
   hydrateAvatars(app);
+  bindSeasons(r);
+}
+
+/* ============================== seasons on profiles ============================== */
+let openSeason = 0;
+function seasonsSection(r, isMe) {
+  const badges = cleanSeasons(r.seasons), cur = seasonNow();
+  let live = "";
+  if (isMe && cur >= 1) {
+    const st = seasonStats(cur), k = rankOf(S.rating), d = st ? st.r - st.s : 0;
+    live = `<div class="panel season-live">
+      <div class="panel-head"><h3>${seasonLabel(cur)} · ${esc(seasonMonth(cur))}</h3><span class="muted num" style="font-size:var(--t-xs)">${L(`ends in ${untilText(seasonEnd(cur) - Date.now())}`, `termina daqui a ${untilText(seasonEnd(cur) - Date.now())}`)}</span></div>
+      ${st ? `<div class="sl-grid">
+        <div><span class="eyebrow">${L("Rank right now", "Escalão agora")}</span><b class="sl-rank" style="color:${tierColor(k.t)}">${emblem(k.t)}${esc(k.label)}</b></div>
+        <div><span class="eyebrow">${L("Rating change", "Variação do rating")}</span><b class="num" style="color:${d > 0 ? "var(--ok)" : d < 0 ? "var(--bad)" : "var(--fg)"}">${signed(d)}</b><small class="num muted">${st.s} → ${st.r}</small></div>
+        <div><span class="eyebrow">${L("Solved", "Resolvidos")}</span><b class="num">${st.w}</b><small class="num muted">${L(`${st.l} missed`, `${st.l} errados`)}</small></div>
+        <div><span class="eyebrow">${L("Peak", "Máximo")}</span><b class="num">${st.pk}</b></div>
+      </div>
+      <p class="note">${L(`The rank you're on when the month ends (${esc(seasonEndText(cur))}) becomes your badge for this season.`, `O escalão em que estiver quando o mês acabar (${esc(seasonEndText(cur))}) passa a ser o seu emblema desta época.`)}</p>`
+      : `<p class="muted" style="font-size:var(--t-sm)">${L(`Play at least one rated problem before ${esc(seasonEndText(cur))} to earn this season's badge.`, `Jogue pelo menos um problema com rating antes de ${esc(seasonEndText(cur))} para ganhar o emblema desta época.`)} <a href="#problems">${L("Pick a problem", "Escolher um problema")}</a></p>`}
+    </div>`;
+  }
+  const grid = badges.length ? `<div class="sbadges" role="list">${badges.map(b => `
+      <button class="sbadge" type="button" role="listitem" data-n="${b.n}" aria-expanded="false" aria-controls="sDetail" style="--tc:${tierColor(b.t)}">
+        ${emblem(b.t)}<span class="sb-txt"><span class="sb-s">${seasonLabel(b.n)}</span><b>${esc(badgeLabel(b))}</b><small>${esc(seasonMonth(b.n, true))}</small></span>
+      </button>`).join("")}</div><div id="sDetail" aria-live="polite"></div>`
+    : `<div class="empty" style="padding:22px 16px">${isMe ? L("No season badges yet. Finish a month with at least one rated result to earn your first.", "Ainda sem emblemas de época. Termine um mês com pelo menos um resultado com rating para ganhar o primeiro.") : L("No season badges yet.", "Ainda sem emblemas de época.")}</div>`;
+  return `<section class="section seasons">
+    <div class="panel-head" style="margin:0"><h2>${L("Seasons", "Épocas")}</h2>${badges.length ? `<span class="muted num" style="font-size:var(--t-sm)">${L(`${badges.length} ${badges.length === 1 ? "badge" : "badges"}`, `${badges.length} ${badges.length === 1 ? "emblema" : "emblemas"}`)}</span>` : ""}</div>
+    ${live}${grid}
+  </section>`;
+}
+function seasonDetail(b) {
+  const d = b.r - b.s;
+  return `<div class="panel sdetail" style="--tc:${tierColor(b.t)}">
+    <div class="panel-head"><h3>${seasonLabel(b.n)} · ${esc(seasonMonth(b.n))}</h3><button class="linkbtn" type="button" data-sclose style="font-size:var(--t-xs)">${L("close", "fechar")}</button></div>
+    <div class="sd-rank">${emblem(b.t)}<div><span class="eyebrow">${L("Finished as", "Terminou em")}</span><b style="color:${tierColor(b.t)}">${esc(badgeLabel(b))}</b><span class="num muted">${b.r} rating</span></div></div>
+    <div class="kv">
+      <span>${L("Rating change", "Variação do rating")}</span><b class="num" style="color:${d > 0 ? "var(--ok)" : d < 0 ? "var(--bad)" : "var(--fg)"}">${signed(d)}</b>
+      <span>${L("Start → end", "Início → fim")}</span><b class="num">${b.s} → ${b.r}</b>
+      <span>${L("Problems solved", "Problemas resolvidos")}</span><b class="num">${b.w}</b>
+      <span>${L("Misses", "Erros")}</span><b class="num">${b.l}</b>
+      <span>${L("Peak rating", "Rating máximo")}</span><b class="num">${b.pk}</b>
+    </div>
+  </div>`;
+}
+function bindSeasons(r) {
+  const box = document.getElementById("sDetail");
+  if (!box) return;
+  const badges = cleanSeasons(r.seasons), btns = [...document.querySelectorAll(".sbadge")];
+  const show = n => {
+    openSeason = n;
+    const b = badges.find(x => x.n === n);
+    btns.forEach(el => el.setAttribute("aria-expanded", String(+el.dataset.n === n && !!b)));
+    box.innerHTML = b ? seasonDetail(b) : "";
+    const c = box.querySelector("[data-sclose]");
+    if (c) c.onclick = () => { const was = openSeason; show(0); const el = btns.find(x => +x.dataset.n === was); if (el) el.focus(); };
+  };
+  btns.forEach(el => { el.onclick = () => show(openSeason === +el.dataset.n ? 0 : +el.dataset.n); });
+  show(badges.some(b => b.n === openSeason) ? openSeason : 0);
 }
 
 /* ============================== edit profile ============================== */
@@ -2512,6 +2709,7 @@ function renderEdit() {
     <div class="field"><label for="fUser">${L("Username", "Nome de utilizador")}</label>
       <div class="pre-inp"><span>@</span><input id="fUser" maxlength="20" value="${esc(pr.username)}" autocomplete="off" spellcheck="false" placeholder="${L("your_name", "o_seu_nome")}"></div>
       <span class="help" id="hUser">${L("3–20 letters, digits, dots, dashes or underscores. Your profile lives at #u-yourname.", "3–20 letras, algarismos, pontos, hífenes ou underscores. O seu perfil fica em #u-onome.")}</span></div>
+    ${nameColorField(pr)}
     <div class="field"><label for="fBio">${L("About you", "Sobre si")}</label>
       <textarea id="fBio" class="inp" maxlength="160" rows="3" placeholder="${L("What are you studying? Favourite theorem? Training for an olympiad?", "O que estuda? Teorema preferido? A treinar para uma olimpíada?")}">${esc(pr.bio)}</textarea>
       <span class="help"><span id="bioCount" class="num">${(pr.bio || "").length}</span>/160</span></div>
@@ -2528,6 +2726,8 @@ function renderEdit() {
   const $ = id => document.getElementById(id);
   const setHelp = (id, msg, cls = "") => { const el = $(id); if (el) { el.textContent = msg; el.className = "help " + cls; } };
   $("fBio").addEventListener("input", () => { $("bioCount").textContent = $("fBio").value.length; });
+  const ncPrev = () => { const v = "@" + ($("fUser").value.trim() || "you"); app.querySelectorAll(".nc-opt [data-nm]").forEach(el => { el.innerHTML = el.dataset.nm ? nameSpan(v, el.dataset.nm) : esc(v); }); };
+  $("fUser").addEventListener("input", ncPrev);
   $("fUser").addEventListener("input", () => {
     const v = $("fUser").value.trim();
     if (!draftAvatar) $("avPrev").src = defaultAvatar(v || "?");
@@ -2568,7 +2768,8 @@ function renderEdit() {
     S.profile = {
       username, bio: $("fBio").value.trim().slice(0, 160), school: $("fSchool").value.trim().slice(0, 80),
       year: YEARS.includes(year) ? year : "", socials, avatar: draftAvatar,
-      avatarV: avatarChanged ? Date.now() : (S.profile.avatarV || 0)
+      avatarV: avatarChanged ? Date.now() : (S.profile.avatarV || 0),
+      nameColor: pickedColor()
     };
     if (avatarChanged) cloud.avDirty = true;
     S.updated = Date.now();
@@ -2587,6 +2788,26 @@ function renderEdit() {
     toast(msg);
     location.hash = "me";
   });
+}
+
+function nameColorField(pr) {
+  const earned = earnedTiers(), cur = myNameColor(), nm = "@" + (pr.username || "you");
+  const best = t => cleanSeasons(S.seasons).filter(b => b.t === t).map(b => seasonLabel(b.n)).reverse().join(", ");
+  const opt = (val, t, label, sub, locked) => `<label class="nc-opt${locked ? " locked" : ""}"><input type="radio" name="nc" value="${val}" ${cur === val ? "checked" : ""} ${locked ? "disabled" : ""}>
+      <span class="nc-sw" style="${t === 8 ? "background:linear-gradient(135deg,#6cc9ff,#c49bff,#ffc857)" : t >= 0 ? `background:${TIERS[t].c}` : "background:var(--fg)"}"></span>
+      <span class="nc-t"><span data-nm="${t >= 0 && !locked ? val : ""}">${t >= 0 && !locked ? nameSpan(nm, val) : esc(nm)}</span><small>${esc(label)}${sub ? " · " + esc(sub) : ""}</small></span></label>`;
+  return `<fieldset class="socials-set nc-set"><legend>${L("Name colour", "Cor do nome")}</legend>
+    <div class="nc-opts" role="radiogroup" aria-label="${L("Name colour", "Cor do nome")}">
+      ${opt("", -1, L("Default", "Padrão"), "", false)}
+      ${TIER_KEYS.map((k, t) => opt(k, t, TIERS[t].name, earned.has(t) ? best(t) : L("locked", "bloqueada"), !earned.has(t))).join("")}
+    </div>
+    <span class="help">${earned.size ? L("Each season badge unlocks its rank's colour. Finish a season higher to unlock more.", "Cada emblema de época desbloqueia a cor do seu escalão. Termine uma época mais acima para desbloquear mais.") : L("Locked for now: finish a season (a calendar month with at least one rated result) to unlock the colour of the rank you end on.", "Bloqueado por agora: termine uma época (um mês com pelo menos um resultado com rating) para desbloquear a cor do escalão em que acabar.")}</span>
+  </fieldset>`;
+}
+function pickedColor() {
+  const el = app.querySelector('.nc-opt input[name="nc"]:checked');
+  const t = el ? TIER_KEYS.indexOf(el.value) : -1;
+  return t >= 0 && earnedTiers().has(t) ? TIER_KEYS[t] : "";
 }
 
 /* ============================== accounts (Supabase) ============================== */
@@ -2692,6 +2913,7 @@ const signInLink = text => `<a href="#login">${esc(text)}</a>`;
 let current = "home", redrawChart = null;
 function route() {
   const h = decodeURIComponent(location.hash.slice(1));
+  if (!cloud.connecting) finalizeSeasons();
   clearMath();
   redrawChart = null;
   const prevCurrent = current;
@@ -2708,12 +2930,12 @@ function route() {
   else if (/^c-[a-z-]+$/.test(h) && CBY.has(h.slice(2))) { current = h; renderConcept(h.slice(2)); }
   else if (h === "ranks") { current = "ranks"; renderRanks(); }
   else if (h === "board") { current = "board"; renderBoard(); }
-  else if (h === "me") { current = "me"; renderProfile(null); }
+  else if (h === "me") { if (current !== "me") openSeason = 0; current = "me"; renderProfile(null); }
   else if (h === "edit") { current = "edit"; renderEdit(); }
   else if (h === "login") { authMode = "signin"; current = "login"; renderLogin(); }
   else if (h === "signup") { authMode = "signup"; current = "login"; renderLogin(); }
   else if (h === "reset") { current = "reset"; renderReset(); }
-  else if (/^u-[a-z0-9_.-]{3,20}$/i.test(h)) { const hd = h.slice(2).toLowerCase(); current = "u-" + hd; renderProfile(hd); }
+  else if (/^u-[a-z0-9_.-]{3,20}$/i.test(h)) { const hd = h.slice(2).toLowerCase(); if (current !== "u-" + hd) openSeason = 0; current = "u-" + hd; renderProfile(hd); }
   else { current = "home"; renderHome(); }
   renderNav();
   if (prevCurrent !== current) window.scrollTo(0, 0);
