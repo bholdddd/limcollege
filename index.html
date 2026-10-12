@@ -262,6 +262,7 @@ table.board{width:100%;border-collapse:collapse;font-size:var(--t-sm)}
 /* ---------- avatars, player search ---------- */
 .av{border-radius:22%;object-fit:cover;background:var(--bg-2);flex:none;display:block;border:1px solid var(--line)}
 .psearch{position:relative;flex:1 1 200px;max-width:280px;margin-left:auto}
+.ps input{width:0}
 .ps{display:flex;align-items:center;gap:6px;background:var(--bg-1);border:1px solid var(--line);border-radius:999px;padding:0 12px}
 .ps:focus-within{border-color:var(--accent)}
 .ps span{color:var(--fg-3);font-size:var(--t-sm)}
@@ -274,6 +275,25 @@ table.board{width:100%;border-collapse:collapse;font-size:var(--t-sm)}
 .ps-item.ps-all{grid-template-columns:1fr;color:var(--accent);font-size:var(--t-xs);border-top:1px solid var(--line);border-radius:0 0 6px 6px;margin-top:2px}
 .ps-empty{padding:10px;color:var(--fg-3);font-size:var(--t-sm)}
 .nav-rank .nm{max-width:130px;overflow:hidden;text-overflow:ellipsis;color:var(--fg)}
+/* nav: one row on desktop (the search box gives way first); below 980px the search takes its own row */
+.nav-rank{flex:none}
+.brand{flex:none}
+@media (min-width: 981px){
+  .nav-in{flex-wrap:nowrap;gap:14px}
+  .links{flex-wrap:nowrap;flex:none}
+  .psearch{flex:1 1 240px;min-width:140px;max-width:280px}
+}
+@media (min-width: 981px) and (max-width: 1120px){
+  .links{gap:2px}
+  .links a{padding:6px 7px}
+  .nav-rank .nm{max-width:84px}
+}
+@media (max-width: 980px){
+  .nav-in{gap:4px 14px;padding-block:8px}
+  .nav-in::after{content:"";order:4;flex-basis:100%;height:0}
+  .psearch{order:5;flex:1 1 140px;max-width:none;margin-left:0;min-width:0}
+  .nav-rank{order:6;margin-left:0}
+}
 
 /* ---------- leaderboard rows ---------- */
 .board tbody tr[data-h]{cursor:pointer}
@@ -419,9 +439,8 @@ textarea.inp{resize:vertical;min-height:90px;line-height:1.5}
   .rung svg{width:40px;height:44px}
   .rung .divs{grid-column:1 / -1}
   .statement{padding:16px;font-size:17px}
-  .nav-in{gap:8px 14px;padding-block:8px}
-  .nav-rank{margin-left:auto}
-  .psearch{order:5;flex:1 1 100%;max-width:none;margin-left:0}
+  .nav-in{gap:4px 14px;padding-block:8px}
+  .nav-rank .nm{max-width:90px}
   .ps-pop{left:0;right:0;width:auto}
   .prof-head{grid-template-columns:auto minmax(0,1fr);gap:16px}
   .prof-head .av-xl{width:76px !important;height:76px !important}
