@@ -432,6 +432,59 @@ textarea.inp{resize:vertical;min-height:90px;line-height:1.5}
   .board .c-rank, .board .c-solved{display:none}
   .stakes b{font-size:var(--t-sm)}
 }
+/* ---------- training ---------- */
+.tr-topics{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.tr-focus{color:var(--accent) !important;border-color:rgba(108,201,255,.45) !important;background:var(--accent-soft) !important}
+.tr-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;margin-top:16px;align-items:start}
+.tr-drill{display:grid;gap:14px;padding:22px 24px;min-height:300px;align-content:start}
+.tr-q{font-family:var(--serif);font-size:22px;min-height:72px;display:grid;align-items:center;overflow-x:auto;overflow-y:hidden}
+.tr-q mjx-container[display="true"]{margin:.2em 0 !important}
+.tr-drill .prompt span{white-space:nowrap}
+.tr-drill .preview{font-size:var(--t-sm)}
+.tr-drill .preview[hidden]{display:none}
+.tr-drill .preview mjx-container{font-size:120%}
+.tr-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tr-fb{display:grid;gap:12px}
+.tr-line{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;align-items:center}
+.tr-line .label, .tr-rule .label{font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.1em;color:var(--fg-3)}
+.tr-math{font-family:var(--serif);font-size:18px;overflow-x:auto;overflow-y:hidden;min-width:0}
+.tr-rule{display:grid;gap:4px;padding:14px 18px;border:1px solid rgba(108,201,255,.35);border-radius:10px;background:linear-gradient(180deg, rgba(108,201,255,.07), rgba(108,201,255,0) 90px), var(--bg)}
+.tr-rule mjx-container[display="true"]{margin:.4em 0 !important}
+.tr-w{color:var(--fg-2);border-top:1px dashed var(--line-2);padding-top:6px;font-size:16px}
+.tr-side{display:grid;gap:12px}
+.tr-side .panel{padding:16px 18px}
+.tr-side .panel-head{margin-bottom:8px}
+.tr-streak{display:grid;gap:0}
+.tr-streak b{font-size:46px;font-weight:800;line-height:1.1;letter-spacing:-.03em}
+.tr-streak.hot b{color:var(--warn)}
+.tr-cat{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:22px;flex-wrap:wrap}
+.tr-rules{display:grid;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:10px}
+.tr-row{display:grid;grid-template-columns:minmax(0,210px) minmax(0,1fr) 110px 120px 92px;gap:14px;align-items:center;padding:10px 14px;background:var(--bg-1);border:0;border-top:1px solid var(--line);text-align:left;cursor:pointer;color:var(--fg);font-size:var(--t-sm);width:100%}
+.tr-row:first-child{border-top:0}
+.tr-row:hover{background:var(--bg-2)}
+.tr-row[aria-pressed="true"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.tr-name{font-weight:500;min-width:0}
+.tr-f{font-family:var(--serif);font-size:15px;color:var(--fg-2);overflow:hidden;min-width:0;white-space:nowrap}
+.tr-st{font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--fg-3)}
+.tr-st.mastered{color:var(--ok)} .tr-st.struggling{color:var(--bad)} .tr-st.learning{color:var(--accent)}
+.tr-ct{color:var(--fg-3);text-align:right;font-size:var(--t-xs);white-space:nowrap}
+@media (max-width: 900px){
+  .tr-grid{grid-template-columns:minmax(0,1fr)}
+  .tr-side{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width: 640px){
+  .tr-drill{padding:16px}
+  .tr-q{font-size:19px}
+  .tr-side{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .tr-streak{grid-column:1 / -1;grid-template-columns:auto 1fr auto;align-items:baseline;gap:12px}
+  .tr-streak b{font-size:34px}
+  .tr-line{grid-template-columns:minmax(0,1fr);gap:2px}
+  .tr-row{grid-template-columns:minmax(0,1fr) auto;gap:6px 12px}
+  .tr-row .tr-f{grid-column:1 / -1;grid-row:2}
+  .tr-row .bar{grid-column:1;grid-row:3}
+  .tr-row .tr-ct{grid-column:2;grid-row:3}
+  .tr-row .tr-st{grid-column:2;grid-row:1;text-align:right}
+}
 @media (prefers-reduced-motion: reduce){
   .hero h1 .cur{animation:none}
   *{scroll-behavior:auto !important}
@@ -448,6 +501,7 @@ textarea.inp{resize:vertical;min-height:90px;line-height:1.5}
     <nav class="links" aria-label="Main">
       <a href="#problems" data-r="problems">Problems</a>
       <a href="#learn" data-r="learn">Learn</a>
+      <a href="#train" data-r="train">Training</a>
       <a href="#ranks" data-r="ranks">Ranks</a>
       <a href="#board" data-r="board">Leaderboard</a>
     </nav>
@@ -506,7 +560,7 @@ const C_ = (c, f) => (LANG === "pt" && c.pt && c.pt[f]) || c[f];
 const ptitle = p => P_(p, "t");
 const TEX_PT = [
   [/\\operatorname\{arsinh\}/g, "\\operatorname{argsh}"], [/\\operatorname\{arcosh\}/g, "\\operatorname{argch}"], [/\\operatorname\{artanh\}/g, "\\operatorname{argth}"],
-  [/\\arcsin(?![a-zA-Z])/g, "\\operatorname{arcsen}"], [/\\arctan(?![a-zA-Z])/g, "\\operatorname{arctg}"],
+  [/\\arcsin(?![a-zA-Z])/g, "\\operatorname{arcsen}"], [/\\arctan(?![a-zA-Z])/g, "\\operatorname{arctg}"], [/\\operatorname\{arccot\}/g, "\\operatorname{arccotg}"],
   [/\\sinh(?![a-zA-Z])/g, "\\operatorname{sh}"], [/\\cosh(?![a-zA-Z])/g, "\\operatorname{ch}"], [/\\tanh(?![a-zA-Z])/g, "\\operatorname{th}"],
   [/\\sin(?![a-zA-Z])/g, "\\operatorname{sen}"], [/\\tan(?![a-zA-Z])/g, "\\operatorname{tg}"], [/\\cot(?![a-zA-Z])/g, "\\operatorname{cotg}"],
   [/\\csc(?![a-zA-Z])/g, "\\operatorname{cosec}"], [/\\ln(?![a-zA-Z])/g, "\\log"], [/(\d)\.(?=\d)/g, "$1{,}"]
@@ -843,7 +897,7 @@ function setSaveNote() {
 /* static chrome outside #app */
 function applyStatic() {
   document.documentElement.lang = LANG === "pt" ? "pt-PT" : "en";
-  const names = { problems: L("Problems", "Problemas"), learn: L("Learn", "Aprender"), ranks: L("Ranks", "Escalões"), board: L("Leaderboard", "Classificação") };
+  const names = { problems: L("Problems", "Problemas"), learn: L("Learn", "Aprender"), train: L("Training", "Treino"), ranks: L("Ranks", "Escalões"), board: L("Leaderboard", "Classificação") };
   document.querySelectorAll(".links a[data-r]").forEach(a => { if (names[a.dataset.r]) a.textContent = names[a.dataset.r]; });
   const nav = document.querySelector(".links"); if (nav) nav.setAttribute("aria-label", L("Main", "Principal"));
   const ps = document.getElementById("ps");
@@ -1563,6 +1617,497 @@ setInterval(() => {
 }, 20000);
 
 /* ============================== ranks ============================== */
+/* ============================== training: derivative-rule drill (unrated) ============================== */
+/* <train-core> */
+/* a small expression parser with a variable x: answers are compared numerically at several points */
+const TR_FN = {};
+[[["sin", "sen"], Math.sin, "\\sin"], [["cos"], Math.cos, "\\cos"], [["tan", "tg"], Math.tan, "\\tan"],
+ [["cot", "cotg"], x => 1 / Math.tan(x), "\\cot"], [["sec"], x => 1 / Math.cos(x), "\\sec"], [["csc", "cosec"], x => 1 / Math.sin(x), "\\csc"],
+ [["arcsin", "arcsen", "asin"], Math.asin, "\\arcsin"], [["arccos", "acos"], Math.acos, "\\arccos"],
+ [["arctan", "arctg", "atan"], Math.atan, "\\arctan"], [["arccot", "arccotg", "acot"], x => Math.PI / 2 - Math.atan(x), "\\operatorname{arccot}"],
+ [["sinh", "sh"], Math.sinh, "\\sinh"], [["cosh", "ch"], Math.cosh, "\\cosh"], [["tanh", "th"], Math.tanh, "\\tanh"],
+ [["arsinh", "arcsinh", "asinh", "argsh"], Math.asinh, "\\operatorname{arsinh}"], [["arcosh", "arccosh", "acosh", "argch"], Math.acosh, "\\operatorname{arcosh}"],
+ [["artanh", "arctanh", "atanh", "argth"], Math.atanh, "\\operatorname{artanh}"],
+ [["ln", "log"], Math.log, "\\ln"], [["exp"], Math.exp, ""], [["sqrt"], Math.sqrt, ""], [["cbrt"], Math.cbrt, ""], [["abs"], Math.abs, ""]
+].forEach(([names, f, tex]) => names.forEach(n => { TR_FN[n] = { f, tex, k: names[0] }; }));
+const TR_NAMES = [...Object.keys(TR_FN), "pi", "e", "x"].sort((a, b) => b.length - a.length);
+
+function trTok(src) {
+  let s = String(src).replace(/[−–—]/g, "-").replace(/[×·⋅]/g, "*").replace(/÷/g, "/").replace(/[’′]/g, "'")
+    .replace(/[{[]/g, "(").replace(/[}\]]/g, ")").replace(/\*\*/g, "^").replace(/\\/g, "").toLowerCase();
+  s = s.replace(/^\s*(?:f\s*'\s*\(\s*x\s*\)|f\s*'|y\s*'|d\s*y\s*\/\s*d\s*x)\s*=\s*/, "").replace(/^\s*=\s*/, "");
+  s = s.replace(/(\d),(?=\d)/g, "$1.");
+  const out = [];
+  let i = 0;
+  while (i < s.length) {
+    const c = s[i];
+    if (/\s/.test(c)) { i++; continue; }
+    if (/[0-9.]/.test(c)) {
+      let j = i; while (j < s.length && /[0-9.]/.test(s[j])) j++;
+      const str = s.slice(i, j);
+      if ((str.match(/\./g) || []).length > 1 || str === ".") throw new Error(L(`"${str}" is not a number`, `"${str}" não é um número`));
+      out.push({ t: "num", v: parseFloat(str) }); i = j; continue;
+    }
+    if (c === "π") { out.push({ t: "id", v: "pi" }); i++; continue; }
+    if (c === "√") { out.push({ t: "id", v: "sqrt" }); i++; continue; }
+    if (c === "∛") { out.push({ t: "id", v: "cbrt" }); i++; continue; }
+    if (/[a-z]/.test(c)) {
+      let j = i; while (j < s.length && /[a-z]/.test(s[j])) j++;
+      let w = s.slice(i, j);
+      while (w) {
+        const n = TR_NAMES.find(nm => w.startsWith(nm));
+        if (!n) throw new Error(L(`unknown name "${w}"`, `nome desconhecido "${w}"`));
+        out.push({ t: "id", v: n }); w = w.slice(n.length);
+      }
+      i = j; continue;
+    }
+    if ("+-*/^()".includes(c)) { out.push({ t: "op", v: c }); i++; continue; }
+    throw new Error(L(`unexpected "${c}"`, `"${c}" inesperado`));
+  }
+  return out;
+}
+function trParse(src) {
+  const toks = trTok(src);
+  if (!toks.length) throw new Error(L("empty", "vazio"));
+  let pos = 0;
+  const peek = () => toks[pos], next = () => toks[pos++];
+  const isOp = (t, v) => t && t.t === "op" && t.v === v;
+  const isFn = t => t && t.t === "id" && TR_FN[t.v];
+  const atomStart = t => t && (t.t === "num" || (t.t === "id" && !TR_FN[t.v]) || isOp(t, "("));
+  const miss = ch => new Error(L(`missing ${ch}`, `falta ${ch}`));
+  const expr = () => {
+    let a = term();
+    while (isOp(peek(), "+") || isOp(peek(), "-")) { const k = next().v; a = { k, a, b: term() }; }
+    return a;
+  };
+  const term = () => {
+    if (isOp(peek(), "-")) { next(); return { k: "neg", a: term() }; }
+    if (isOp(peek(), "+")) { next(); return term(); }
+    return product();
+  };
+  const product = () => {
+    let a = factor();
+    for (;;) {
+      if (isOp(peek(), "*")) { next(); a = { k: "*", a, b: factor() }; }
+      else if (isOp(peek(), "/")) { next(); a = { k: "/", a, b: factor() }; }
+      else if (atomStart(peek()) || isFn(peek())) a = { k: "*", a, b: power() };
+      else break;
+    }
+    return a;
+  };
+  const factor = () => {
+    if (isOp(peek(), "-")) { next(); return { k: "neg", a: factor() }; }
+    if (isOp(peek(), "+")) { next(); return factor(); }
+    return power();
+  };
+  const expo = () => {
+    if (isOp(peek(), "-")) { next(); return { k: "neg", a: expo() }; }
+    if (isOp(peek(), "+")) { next(); return expo(); }
+    return power();
+  };
+  const power = () => {
+    const b = primary();
+    if (isOp(peek(), "^")) { next(); return { k: "^", a: b, b: expo() }; }
+    return b;
+  };
+  const group = () => { const a = expr(); if (!isOp(next(), ")")) throw miss(")"); return a; };
+  const primary = () => {
+    const t = next();
+    if (!t) throw new Error(L("the expression ends early", "a expressão termina cedo demais"));
+    if (t.t === "num") return { k: "num", v: t.v };
+    if (isOp(t, "(")) return group();
+    if (t.t === "id") {
+      if (t.v === "x" || t.v === "pi" || t.v === "e") return { k: t.v };
+      let p = null;
+      if (isOp(peek(), "^")) { next(); p = expo(); }          /* cos^2 x */
+      let a;
+      if (isOp(peek(), "(")) { next(); a = group(); }
+      else {                                                  /* sin 2x, ln x: the argument runs until the next function or operator */
+        if (!atomStart(peek())) throw new Error(L(`${t.v} needs an argument, like ${t.v}(x)`, `${t.v} precisa de um argumento, como ${t.v}(x)`));
+        a = power();
+        while (atomStart(peek())) a = { k: "*", a, b: power() };
+      }
+      const f = { k: "fn", f: TR_FN[t.v].k, a };
+      return p ? { k: "^", a: f, b: p } : f;
+    }
+    throw new Error(L(`unexpected "${t.v}"`, `"${t.v}" inesperado`));
+  };
+  const ast = expr();
+  if (pos < toks.length) throw new Error(L(`unexpected "${toks[pos].v}"`, `"${toks[pos].v}" inesperado`));
+  return ast;
+}
+function trEval(n, x) {
+  switch (n.k) {
+    case "num": return n.v;
+    case "x": return x;
+    case "pi": return Math.PI;
+    case "e": return Math.E;
+    case "neg": return -trEval(n.a, x);
+    case "+": return trEval(n.a, x) + trEval(n.b, x);
+    case "-": return trEval(n.a, x) - trEval(n.b, x);
+    case "*": return trEval(n.a, x) * trEval(n.b, x);
+    case "/": return trEval(n.a, x) / trEval(n.b, x);
+    case "^": return Math.pow(trEval(n.a, x), trEval(n.b, x));
+    case "fn": return TR_FN[n.f].f(trEval(n.a, x));
+  }
+  return NaN;
+}
+/* TeX for previews and for the question bank */
+const trNum = v => String(+v.toPrecision(12));
+function trTex(n) {
+  const T = trTex, wrap = (m, ks) => ks.includes(m.k) ? `\\left(${T(m)}\\right)` : T(m);
+  switch (n.k) {
+    case "num": return trNum(n.v);
+    case "x": return "x";
+    case "pi": return "\\pi";
+    case "e": return "e";
+    case "+": return `${T(n.a)}+${T(n.b)}`;
+    case "-": return `${T(n.a)}-${wrap(n.b, ["+", "-"])}`;
+    case "neg": return `-${wrap(n.a, ["+", "-", "neg"])}`;
+    case "*": {
+      const l = wrap(n.a, ["+", "-"]), r = wrap(n.b, ["+", "-", "neg"]);
+      const sep = /^[0-9.]/.test(r) ? "\\cdot " : /[a-zA-Z]$/.test(l) && /^[a-zA-Z]/.test(r) ? " " : "";
+      return l + sep + r;
+    }
+    case "/": return `\\frac{${T(n.a)}}{${T(n.b)}}`;
+    case "^": {
+      const ex = T(n.b);
+      if (n.a.k === "fn" && TR_FN[n.a.f].tex && n.b.k === "num" && Number.isInteger(n.b.v) && n.b.v > 0) return trFnTex(n.a, ex);
+      const plain = ["x", "pi", "e"].includes(n.a.k) || (n.a.k === "num" && Number.isInteger(n.a.v));
+      return `${plain ? T(n.a) : `\\left(${T(n.a)}\\right)`}^{${ex}}`;
+    }
+    case "fn": return trFnTex(n);
+  }
+  return "";
+}
+function trFnTex(n, pw) {
+  const inner = trTex(n.a);
+  if (n.f === "sqrt") return `\\sqrt{${inner}}`;
+  if (n.f === "cbrt") return `\\sqrt[3]{${inner}}`;
+  if (n.f === "abs") return `\\left|${inner}\\right|`;
+  if (n.f === "exp") return `e^{${inner}}`;
+  const name = TR_FN[n.f].tex + (pw ? `^{${pw}}` : "");
+  const simple = n.a.k === "x" || n.a.k === "pi" || (n.a.k === "num" && n.a.v >= 0);
+  return simple ? `${name} ${inner}` : `${name}\\left(${inner}\\right)`;
+}
+
+/* the rules. q: [f(x), f'(x), options]; options: ft (TeX for f), w (worked line), dom (sample interval) */
+const TR_CATS = [
+  { k: "basic", en: "Powers, exponentials & logs", pt: "Potências, exponenciais e logaritmos" },
+  { k: "trig", en: "Trigonometric", pt: "Trigonométricas" },
+  { k: "itrig", en: "Inverse trigonometric", pt: "Trigonométricas inversas" },
+  { k: "hyp", en: "Hyperbolic", pt: "Hiperbólicas" },
+  { k: "comb", en: "Combining rules", pt: "Regras de derivação" }
+];
+const TR_RULES = [
+  { k: "const", c: "basic", en: "Constant", pt: "Constante", tex: "(c)'=0",
+    q: [["7", "0"], ["pi", "0"], ["e^2", "0"], ["ln(5)", "0"], ["sqrt(3)", "0"]] },
+  { k: "power", c: "basic", en: "Power", pt: "Potência", tex: "\\left(x^n\\right)'=n\\,x^{n-1}",
+    q: [["x^5", "5x^4"], ["x^8", "8x^7"], ["x^2", "2x"], ["x", "1"], ["x^(-3)", "-3x^(-4)"], ["x^100", "100x^99"], ["x^(3/2)", "3/2 x^(1/2)"]] },
+  { k: "sqrt", c: "basic", en: "Square root", pt: "Raiz quadrada", tex: "\\left(\\sqrt{x}\\right)'=\\dfrac{1}{2\\sqrt{x}}",
+    q: [["sqrt(x)", "1/(2sqrt(x))"]] },
+  { k: "recip", c: "basic", en: "Reciprocal", pt: "Inverso", tex: "\\left(\\dfrac1x\\right)'=-\\dfrac{1}{x^2}",
+    q: [["1/x", "-1/x^2"]] },
+  { k: "exp", c: "basic", en: "Exponential, base e", pt: "Exponencial de base e", tex: "\\left(e^x\\right)'=e^x",
+    q: [["e^x", "e^x"]] },
+  { k: "ax", c: "basic", en: "Exponential, base a", pt: "Exponencial de base a", tex: "\\left(a^x\\right)'=a^x\\ln a",
+    q: [["2^x", "2^x ln(2)"], ["3^x", "3^x ln(3)"], ["10^x", "10^x ln(10)"], ["5^x", "5^x ln(5)"]] },
+  { k: "ln", c: "basic", en: "Natural logarithm", pt: "Logaritmo natural", tex: "(\\ln x)'=\\dfrac1x",
+    q: [["ln(x)", "1/x"]] },
+  { k: "loga", c: "basic", en: "Logarithm, base a", pt: "Logaritmo de base a", tex: "(\\log_a x)'=\\dfrac{1}{x\\ln a}",
+    q: [["ln(x)/ln(2)", "1/(x ln(2))", { ft: "\\log_2 x" }], ["ln(x)/ln(10)", "1/(x ln(10))", { ft: "\\log_{10} x" }], ["ln(x)/ln(3)", "1/(x ln(3))", { ft: "\\log_3 x" }]] },
+
+  { k: "sin", c: "trig", en: "Sine", pt: "Seno", tex: "(\\sin x)'=\\cos x", q: [["sin(x)", "cos(x)"]] },
+  { k: "cos", c: "trig", en: "Cosine", pt: "Cosseno", tex: "(\\cos x)'=-\\sin x", q: [["cos(x)", "-sin(x)"]] },
+  { k: "tan", c: "trig", en: "Tangent", pt: "Tangente", tex: "(\\tan x)'=\\dfrac{1}{\\cos^2 x}=\\sec^2 x=1+\\tan^2 x", q: [["tan(x)", "1/cos(x)^2"]] },
+  { k: "cot", c: "trig", en: "Cotangent", pt: "Cotangente", tex: "(\\cot x)'=-\\dfrac{1}{\\sin^2 x}=-\\csc^2 x", q: [["cot(x)", "-1/sin(x)^2"]] },
+  { k: "sec", c: "trig", en: "Secant", pt: "Secante", tex: "(\\sec x)'=\\sec x\\tan x", q: [["sec(x)", "sec(x)tan(x)"]] },
+  { k: "csc", c: "trig", en: "Cosecant", pt: "Cossecante", tex: "(\\csc x)'=-\\csc x\\cot x", q: [["csc(x)", "-csc(x)cot(x)"]] },
+
+  { k: "arcsin", c: "itrig", en: "Arcsine", pt: "Arco-seno", tex: "(\\arcsin x)'=\\dfrac{1}{\\sqrt{1-x^2}}", dom: [-0.8, 0.8], q: [["arcsin(x)", "1/sqrt(1-x^2)"]] },
+  { k: "arccos", c: "itrig", en: "Arccosine", pt: "Arco-cosseno", tex: "(\\arccos x)'=-\\dfrac{1}{\\sqrt{1-x^2}}", dom: [-0.8, 0.8], q: [["arccos(x)", "-1/sqrt(1-x^2)"]] },
+  { k: "arctan", c: "itrig", en: "Arctangent", pt: "Arco-tangente", tex: "(\\arctan x)'=\\dfrac{1}{1+x^2}", dom: [-2, 2], q: [["arctan(x)", "1/(1+x^2)"]] },
+  { k: "arccot", c: "itrig", en: "Arccotangent", pt: "Arco-cotangente", tex: "(\\operatorname{arccot} x)'=-\\dfrac{1}{1+x^2}", dom: [-2, 2], q: [["arccot(x)", "-1/(1+x^2)"]] },
+
+  { k: "sinh", c: "hyp", en: "Hyperbolic sine", pt: "Seno hiperbólico", tex: "(\\sinh x)'=\\cosh x", dom: [-1.5, 1.5], q: [["sinh(x)", "cosh(x)"]] },
+  { k: "cosh", c: "hyp", en: "Hyperbolic cosine", pt: "Cosseno hiperbólico", tex: "(\\cosh x)'=\\sinh x", dom: [-1.5, 1.5], q: [["cosh(x)", "sinh(x)"]] },
+  { k: "tanh", c: "hyp", en: "Hyperbolic tangent", pt: "Tangente hiperbólica", tex: "(\\tanh x)'=\\dfrac{1}{\\cosh^2 x}=1-\\tanh^2 x", dom: [-1.5, 1.5], q: [["tanh(x)", "1/cosh(x)^2"]] },
+  { k: "arsinh", c: "hyp", en: "Inverse hyperbolic sine", pt: "Argumento do seno hiperbólico", tex: "(\\operatorname{arsinh} x)'=\\dfrac{1}{\\sqrt{x^2+1}}", dom: [-2, 2], q: [["arsinh(x)", "1/sqrt(x^2+1)"]] },
+  { k: "arcosh", c: "hyp", en: "Inverse hyperbolic cosine", pt: "Argumento do cosseno hiperbólico", tex: "(\\operatorname{arcosh} x)'=\\dfrac{1}{\\sqrt{x^2-1}}", dom: [1.2, 3], q: [["arcosh(x)", "1/sqrt(x^2-1)"]] },
+  { k: "artanh", c: "hyp", en: "Inverse hyperbolic tangent", pt: "Argumento da tangente hiperbólica", tex: "(\\operatorname{artanh} x)'=\\dfrac{1}{1-x^2}", dom: [-0.8, 0.8], q: [["artanh(x)", "1/(1-x^2)"]] },
+
+  { k: "sum", c: "comb", en: "Sum rule", pt: "Derivada da soma", tex: "(f\\pm g)'=f'\\pm g'",
+    q: [["x^3+sin(x)", "3x^2+cos(x)", { w: "(x^3)'+(\\sin x)'=3x^2+\\cos x" }],
+        ["e^x-cos(x)", "e^x+sin(x)", { w: "(e^x)'-(\\cos x)'=e^x-(-\\sin x)=e^x+\\sin x" }],
+        ["ln(x)+x^2", "1/x+2x", { w: "(\\ln x)'+(x^2)'=\\frac1x+2x" }],
+        ["tan(x)-x", "1/cos(x)^2-1", { w: "(\\tan x)'-(x)'=\\frac{1}{\\cos^2x}-1" }],
+        ["sqrt(x)+arctan(x)", "1/(2sqrt(x))+1/(1+x^2)", { w: "(\\sqrt x)'+(\\arctan x)'=\\frac{1}{2\\sqrt x}+\\frac{1}{1+x^2}" }]] },
+  { k: "mult", c: "comb", en: "Constant multiple", pt: "Produto por uma constante", tex: "(c\\,f)'=c\\,f'",
+    q: [["5sin(x)", "5cos(x)", { w: "5(\\sin x)'=5\\cos x" }],
+        ["3e^x", "3e^x", { w: "3(e^x)'=3e^x" }],
+        ["4ln(x)", "4/x", { w: "4(\\ln x)'=\\frac4x" }],
+        ["-2cos(x)", "2sin(x)", { w: "-2(\\cos x)'=-2(-\\sin x)=2\\sin x" }],
+        ["3arctan(x)", "3/(1+x^2)", { w: "3(\\arctan x)'=\\frac{3}{1+x^2}" }],
+        ["pi x", "pi", { w: "\\pi\\,(x)'=\\pi" }]] },
+  { k: "product", c: "comb", en: "Product rule", pt: "Derivada do produto", tex: "(f\\,g)'=f'g+f\\,g'",
+    q: [["x sin(x)", "sin(x)+x cos(x)", { w: "(x)'\\sin x+x(\\sin x)'=\\sin x+x\\cos x" }],
+        ["x e^x", "e^x+x e^x", { w: "(x)'e^x+x(e^x)'=e^x+xe^x" }],
+        ["x ln(x)", "ln(x)+1", { w: "(x)'\\ln x+x(\\ln x)'=\\ln x+x\\cdot\\frac1x=\\ln x+1" }],
+        ["e^x sin(x)", "e^x sin(x)+e^x cos(x)", { w: "(e^x)'\\sin x+e^x(\\sin x)'=e^x\\sin x+e^x\\cos x" }],
+        ["x^2 cos(x)", "2x cos(x)-x^2 sin(x)", { w: "(x^2)'\\cos x+x^2(\\cos x)'=2x\\cos x-x^2\\sin x" }],
+        ["sin(x)cos(x)", "cos(x)^2-sin(x)^2", { w: "(\\sin x)'\\cos x+\\sin x(\\cos x)'=\\cos^2x-\\sin^2x" }]] },
+  { k: "quotient", c: "comb", en: "Quotient rule", pt: "Derivada do quociente", tex: "\\left(\\dfrac fg\\right)'=\\dfrac{f'g-f\\,g'}{g^2}",
+    q: [["sin(x)/x", "(x cos(x)-sin(x))/x^2", { w: "\\frac{(\\sin x)'\\,x-\\sin x\\,(x)'}{x^2}=\\frac{x\\cos x-\\sin x}{x^2}" }],
+        ["e^x/x", "(x e^x-e^x)/x^2", { w: "\\frac{(e^x)'\\,x-e^x\\,(x)'}{x^2}=\\frac{xe^x-e^x}{x^2}" }],
+        ["ln(x)/x", "(1-ln(x))/x^2", { w: "\\frac{(\\ln x)'\\,x-\\ln x\\,(x)'}{x^2}=\\frac{1-\\ln x}{x^2}" }],
+        ["x/(x+1)", "1/(x+1)^2", { w: "\\frac{(x)'(x+1)-x\\,(x+1)'}{(x+1)^2}=\\frac{1}{(x+1)^2}" }],
+        ["x/e^x", "(1-x)/e^x", { w: "\\frac{(x)'e^x-x\\,(e^x)'}{(e^x)^2}=\\frac{(1-x)e^x}{e^{2x}}=\\frac{1-x}{e^x}" }]] },
+  { k: "chain", c: "comb", en: "Chain rule", pt: "Regra da cadeia", tex: "\\big(f(g(x))\\big)'=f'(g(x))\\,g'(x)",
+    q: [["sin(3x)", "3cos(3x)", { w: "\\cos(3x)\\cdot(3x)'=3\\cos(3x)" }],
+        ["e^(5x)", "5e^(5x)", { w: "e^{5x}\\cdot(5x)'=5e^{5x}" }],
+        ["cos(x^2)", "-2x sin(x^2)", { w: "-\\sin(x^2)\\cdot(x^2)'=-2x\\sin(x^2)" }],
+        ["e^(x^2)", "2x e^(x^2)", { w: "e^{x^2}\\cdot(x^2)'=2x\\,e^{x^2}" }],
+        ["ln(sin(x))", "cos(x)/sin(x)", { w: "\\frac{1}{\\sin x}\\cdot(\\sin x)'=\\frac{\\cos x}{\\sin x}" }],
+        ["sin(e^x)", "e^x cos(e^x)", { w: "\\cos(e^x)\\cdot(e^x)'=e^x\\cos(e^x)" }],
+        ["ln(x^2+1)", "2x/(x^2+1)", { w: "\\frac{1}{x^2+1}\\cdot(x^2+1)'=\\frac{2x}{x^2+1}" }],
+        ["(x^2+1)^5", "10x(x^2+1)^4", { w: "5(x^2+1)^4\\cdot(x^2+1)'=10x(x^2+1)^4" }],
+        ["arctan(2x)", "2/(1+4x^2)", { w: "\\frac{1}{1+(2x)^2}\\cdot(2x)'=\\frac{2}{1+4x^2}" }],
+        ["sqrt(sin(x))", "cos(x)/(2sqrt(sin(x)))", { w: "\\frac{1}{2\\sqrt{\\sin x}}\\cdot(\\sin x)'=\\frac{\\cos x}{2\\sqrt{\\sin x}}" }]] }
+];
+const TR_BY = new Map(TR_RULES.map(r => [r.k, r]));
+const TR_QS = [];
+for (const r of TR_RULES) {
+  r.qs = r.q.map(([f, d, o = {}]) => {
+    const fA = trParse(f), dA = trParse(d);
+    const q = { r: r.k, f, d, fA, dA, ft: o.ft || trTex(fA), dt: trTex(dA), w: o.w || "", dom: o.dom || r.dom || [0.3, 1.4] };
+    TR_QS.push(q);
+    return q;
+  });
+}
+/* compare an answer with f'(x) at seven points of the rule's interval */
+const trClose = (u, e) => Number.isFinite(u) && Math.abs(u - e) <= 1e-7 * Math.max(1, Math.abs(e));
+function trJudge(ast, q) {
+  const [a, b] = q.dom, pts = [];
+  for (let i = 0; i < 7; i++) pts.push(a + (b - a) * (i + 0.37) / 7);
+  let used = 0, ok = true, neg = true, isF = true, zero = true;
+  for (const x of pts) {
+    const e = trEval(q.dA, x);
+    if (!Number.isFinite(e)) continue;
+    used++;
+    const u = trEval(ast, x);
+    if (!trClose(u, e)) ok = false;
+    if (!trClose(-u, e)) neg = false;
+    if (!trClose(u, trEval(q.fA, x))) isF = false;
+    if (Math.abs(e) > 1e-9) zero = false;
+  }
+  if (!used) return { ok: false };
+  return { ok, note: ok ? "" : isF ? "self" : neg && !zero ? "sign" : "" };
+}
+/* </train-core> */
+
+/* per-rule history: c correct, w wrong, h the last ten results ("1"/"0") */
+function trState() {
+  if (!S.train || typeof S.train !== "object") S.train = {};
+  const T = S.train;
+  for (const k of ["n", "c", "streak", "best"]) if (!Number.isFinite(T[k])) T[k] = 0;
+  if (!T.r || typeof T.r !== "object") T.r = {};
+  return T;
+}
+const TR_MASTER = 10, TR_STRUGGLE = 3;
+function trStatus(k) {
+  const r = S.train && S.train.r && S.train.r[k];
+  if (!r || !(r.c + r.w)) return "new";
+  if ((String(r.h || "").match(/0/g) || []).length >= TR_STRUGGLE) return "struggling";
+  if (r.c >= TR_MASTER) return "mastered";
+  return "learning";
+}
+const TR_ST = { get new() { return L("New", "Nova"); }, get learning() { return L("Learning", "A aprender"); }, get mastered() { return L("Mastered", "Dominada"); }, get struggling() { return L("Struggling", "Com dificuldade"); } };
+const trName = r => L(r.en, r.pt);
+const trPct = (c, n) => n ? Math.round(100 * c / n) + "%" : "—";
+
+const TR = { topic: "all", focus: null, q: null, phase: "ask", res: null, input: "", sess: { n: 0, c: 0 } };
+let trMJ = Promise.resolve(), trTm = 0;
+const trTypeset = el => {
+  if (!el) return;
+  if (!(window.__mjReady && window.MathJax && MathJax.typesetPromise)) { typeset(el); return; }
+  trMJ = trMJ.then(() => MathJax.typesetPromise([el])).catch(() => {});
+};
+const trClear = el => { if (el && window.__mjReady && window.MathJax && MathJax.typesetClear) { try { MathJax.typesetClear([el]); } catch {} } };
+
+function trPool() {
+  if (TR.focus && TR_BY.has(TR.focus)) return [TR_BY.get(TR.focus)];
+  return TR_RULES.filter(r => TR.topic === "all" || r.c === TR.topic);
+}
+function trPick() {
+  const pool = trPool(), prev = TR.q;
+  const w = pool.map(r => {
+    if (prev && r.k === prev.r && pool.length > 1) return 0;
+    const st = trStatus(r.k);
+    return st === "struggling" ? 4 : st === "new" ? 2 : st === "mastered" ? 0.6 : 1.5;
+  });
+  let t = Math.random() * w.reduce((s, v) => s + v, 0), i = 0;
+  for (; i < pool.length - 1; i++) { t -= w[i]; if (t < 0) break; }
+  const rule = pool[i], fresh = rule.qs.filter(q => q !== prev);
+  const from = fresh.length ? fresh : rule.qs;
+  TR.q = from[Math.floor(Math.random() * from.length)];
+  TR.phase = "ask"; TR.res = null; TR.input = "";
+}
+
+function renderTrain() {
+  trState();
+  if (!TR.q || !trPool().some(r => r.k === TR.q.r)) trPick();
+  const T = S.train;
+  app.innerHTML = `
+  <div class="ph"><div><div class="eyebrow">${L("Unrated · derivative rules", "Sem rating · regras de derivação")}</div><h1>${L("Training", "Treino")}</h1></div></div>
+  <p class="muted" style="max-width:68ch;margin-top:10px">${L("Quick derivatives that check whether you know the rules, not your algebra. Nothing here touches your rating.", "Derivadas rápidas para ver se sabe as regras, sem contas pelo meio. Nada aqui mexe no seu rating.")}</p>
+  <div class="tr-topics" id="trTopics" role="group" aria-label="${L("Topics", "Temas")}"></div>
+  <div class="tr-grid">
+    <section class="panel tr-drill" id="trDrill" aria-label="${L("Question", "Pergunta")}"></section>
+    <aside class="tr-side" id="trStats" aria-label="${L("Stats", "Estatísticas")}"></aside>
+  </div>
+  <section class="section" id="trRulesSec">
+    <div class="panel-head" style="margin:0"><h2>${L("Rules", "Regras")}</h2><span class="muted num" id="trMast"></span></div>
+    <p class="note" style="max-width:72ch">${L(`A rule is mastered after ${TR_MASTER} correct answers, and struggling when ${TR_STRUGGLE} or more of its last 10 tries were misses. Click a rule to drill only that one.`, `Uma regra fica dominada com ${TR_MASTER} respostas certas, e com dificuldade quando ${TR_STRUGGLE} ou mais das últimas 10 tentativas foram erros. Clique numa regra para treinar só essa.`)}</p>
+    <div id="trRules">${TR_CATS.map(c => `
+      <div class="tr-cat"><h3>${esc(L(c.en, c.pt))}</h3><span class="muted num" data-cat="${c.k}"></span></div>
+      <div class="tr-rules">${TR_RULES.filter(r => r.c === c.k).map(r => `
+        <button class="tr-row" type="button" data-k="${r.k}" aria-pressed="false">
+          <span class="tr-name">${esc(trName(r))}</span>
+          <span class="tr-f">${esc(mathL("$" + r.tex + "$"))}</span>
+          <span class="bar" aria-hidden="true"><i></i></span>
+          <span class="tr-st"></span>
+          <span class="tr-ct num"></span>
+        </button>`).join("")}</div>`).join("")}
+    </div>
+  </section>`;
+  document.getElementById("trRules").addEventListener("click", e => {
+    const b = e.target.closest(".tr-row"); if (!b) return;
+    TR.focus = TR.focus === b.dataset.k ? null : b.dataset.k;
+    trPick(); drawTopics(); drawDrill(true); drawRules();
+    document.getElementById("trDrill").scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+  drawTopics(); drawStats(); drawRules(); drawDrill(true);
+  trTypeset(document.getElementById("trRules"));
+}
+function drawTopics() {
+  const el = document.getElementById("trTopics"); if (!el) return;
+  const count = k => TR_RULES.filter(r => k === "all" || r.c === k).length;
+  const chip = (k, label) => `<button class="chip" type="button" data-t="${k}" aria-pressed="${!TR.focus && TR.topic === k}">${esc(label)} <span class="c num">${count(k)}</span></button>`;
+  const f = TR.focus && TR_BY.get(TR.focus);
+  el.innerHTML = chip("all", L("All rules", "Todas")) + TR_CATS.map(c => chip(c.k, L(c.en, c.pt))).join("")
+    + (f ? `<button class="chip tr-focus" type="button" data-t="unfocus" aria-pressed="true" aria-label="${esc(L(`Only ${trName(f)}. Show all rules`, `Só ${trName(f)}. Mostrar todas`))}">${L("Only", "Só")}: ${esc(trName(f))} <span aria-hidden="true">×</span></button>` : "");
+  el.onclick = e => {
+    const b = e.target.closest("[data-t]"); if (!b) return;
+    if (b.dataset.t === "unfocus") TR.focus = null; else { TR.topic = b.dataset.t; TR.focus = null; }
+    trPick(); drawTopics(); drawDrill(true); drawRules();
+  };
+}
+function drawStats() {
+  const el = document.getElementById("trStats"); if (!el) return;
+  const T = trState(), s = TR.sess;
+  const st = TR_RULES.map(r => trStatus(r.k));
+  const mastered = st.filter(x => x === "mastered").length, struggling = st.filter(x => x === "struggling").length;
+  el.innerHTML = `
+    <div class="panel tr-streak${T.streak >= 5 ? " hot" : ""}"><span class="eyebrow">${L("Streak", "Sequência")}</span><b class="num">${T.streak}</b><span class="muted num">${L("best", "melhor")} ${T.best}</span></div>
+    <div class="panel"><div class="panel-head"><h3>${L("This session", "Esta sessão")}</h3>${s.n ? `<button class="linkbtn" type="button" id="trSessReset" style="font-size:var(--t-xs)">${L("reset", "recomeçar")}</button>` : ""}</div>
+      <div class="kv"><span>${L("Answered", "Respondidas")}</span><b class="num">${s.n}</b><span>${L("Correct", "Certas")}</span><b class="num">${s.c}</b><span>${L("Accuracy", "Taxa de acerto")}</span><b class="num">${trPct(s.c, s.n)}</b></div></div>
+    <div class="panel"><div class="panel-head"><h3>${L("All time", "Desde sempre")}</h3></div>
+      <div class="kv"><span>${L("Answered", "Respondidas")}</span><b class="num">${T.n}</b><span>${L("Correct", "Certas")}</span><b class="num">${T.c}</b><span>${L("Accuracy", "Taxa de acerto")}</span><b class="num">${trPct(T.c, T.n)}</b>
+      <span>${L("Rules mastered", "Regras dominadas")}</span><b class="num" style="color:var(--ok)">${mastered}/${TR_RULES.length}</b>
+      <span>${L("Struggling", "Com dificuldade")}</span><b class="num" style="color:${struggling ? "var(--bad)" : "var(--fg)"}">${struggling}</b></div></div>`;
+  const rs = document.getElementById("trSessReset");
+  if (rs) rs.onclick = () => { TR.sess = { n: 0, c: 0 }; drawStats(); };
+  const m = document.getElementById("trMast"); if (m) m.textContent = L(`${mastered} of ${TR_RULES.length} mastered`, `${mastered} de ${TR_RULES.length} dominadas`);
+}
+function drawRules() {
+  const T = trState();
+  document.querySelectorAll("#trRules .tr-row").forEach(b => {
+    const k = b.dataset.k, r = T.r[k] || { c: 0, w: 0 }, st = trStatus(k);
+    const col = st === "mastered" ? "var(--ok)" : st === "struggling" ? "var(--bad)" : "var(--accent)";
+    b.setAttribute("aria-pressed", String(TR.focus === k));
+    b.querySelector(".bar i").style.cssText = `width:${Math.min(100, 100 * r.c / TR_MASTER)}%;background:${col}`;
+    const s = b.querySelector(".tr-st"); s.className = "tr-st " + st; s.textContent = TR_ST[st];
+    b.querySelector(".tr-ct").textContent = `✓ ${r.c} · ✗ ${r.w}`;
+    b.setAttribute("aria-label", `${trName(TR_BY.get(k))}: ${TR_ST[st]}, ${r.c} ${L("correct", "certas")}, ${r.w} ${L("missed", "erradas")}`);
+  });
+  for (const c of TR_CATS) {
+    const el = document.querySelector(`#trRules [data-cat="${c.k}"]`); if (!el) continue;
+    const rs = TR_RULES.filter(r => r.c === c.k);
+    el.textContent = L(`${rs.filter(r => trStatus(r.k) === "mastered").length}/${rs.length} mastered`, `${rs.filter(r => trStatus(r.k) === "mastered").length}/${rs.length} dominadas`);
+  }
+}
+const trFineInput = () => { try { return matchMedia("(pointer: fine)").matches; } catch { return true; } };
+function drawDrill(fresh) {
+  const el = document.getElementById("trDrill"); if (!el) return;
+  trClear(el);
+  const q = TR.q, rule = TR_BY.get(q.r), done = TR.phase === "done", res = TR.res;
+  const M = s => esc(mathL(s));
+  let fb = "";
+  if (done) {
+    const head = res.ok ? `<div class="result ok"><span class="big">${L("Correct.", "Certo.")}</span></div>`
+      : `<div class="result ${res.idk ? "info" : "bad"}"><span class="big">${res.idk ? L("Here's the rule.", "Aqui está a regra.") : L("Not quite.", "Não é bem isso.")}</span>${res.note === "sign" ? `<span>${L("Off by a sign.", "Erro de sinal.")}</span>` : res.note === "self" ? `<span>${L("That's f(x) itself: it still needs differentiating.", "Isso é a própria f(x): ainda falta derivar.")}</span>` : ""}</div>`;
+    fb = `<div class="tr-fb">${head}
+      ${!res.ok && res.tex ? `<div class="tr-line"><span class="label">${L("You wrote", "Escreveu")}</span><span class="tr-math">${M(`$f'(x)=${res.tex}$`)}</span></div>` : ""}
+      <div class="tr-line"><span class="label">${L("Answer", "Resposta")}</span><span class="tr-math">${M(`$f'(x)=${q.dt}$`)}</span></div>
+      ${!res.ok ? `<div class="tr-rule"><span class="label">${L("Rule", "Regra")} · ${esc(trName(rule))}</span><div class="tr-math">${M(`$$${rule.tex}$$`)}</div>${q.w ? `<div class="tr-math tr-w">${M(`$$${q.w}$$`)}</div>` : ""}</div>` : ""}
+      <div class="tr-actions"><button class="btn primary" type="button" id="trNext">${L("Next", "Seguinte")} →</button><span class="note">${L("or press Enter", "ou carregue em Enter")}</span></div>
+    </div>`;
+  }
+  el.innerHTML = `
+    <div class="tr-q">${M(`$$f(x)=${q.ft}$$`)}</div>
+    <label class="prompt${done ? " off" : ""}"><span>f'(x) =</span><input id="trIn" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${L("The derivative f'(x)", "A derivada f'(x)")}" ${done ? "disabled" : ""}></label>
+    <div class="preview" id="trPre" aria-live="polite"></div>
+    ${done ? fb : `<div class="tr-actions"><button class="btn primary" type="button" id="trGo">${L("Check", "Verificar")}</button><button class="btn ghost" type="button" id="trIdk">${L("I don't know", "Não sei")}</button></div>`}`;
+  const inp = el.querySelector("#trIn"), pre = el.querySelector("#trPre");
+  inp.value = TR.input;
+  const hint = L("Type f'(x), like cos x, 3x^2, 1/(1+x^2), e^(2x) or sqrt(x).", "Escreva f'(x), por exemplo sen x, 3x^2, 1/(1+x^2), e^(2x) ou sqrt(x).");
+  const preview = () => {
+    const v = inp.value.trim();
+    trClear(pre);
+    if (!v) { pre.className = "preview"; pre.textContent = hint; return; }
+    try { const a = trParse(v); pre.className = "preview"; pre.innerHTML = `${L("reads as", "lê-se")} ${M(`$${trTex(a)}$`)}`; trTypeset(pre); }
+    catch (e) { pre.className = "preview err"; pre.textContent = e.message; }
+  };
+  if (!done) {
+    preview();
+    inp.addEventListener("input", () => { clearTimeout(trTm); trTm = setTimeout(preview, 140); });
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); trCheck(false); } });
+    el.querySelector("#trGo").onclick = () => trCheck(false);
+    el.querySelector("#trIdk").onclick = () => trCheck(true);
+    if (fresh && trFineInput()) inp.focus({ preventScroll: true });
+  } else {
+    pre.hidden = true;
+    const nx = el.querySelector("#trNext");
+    nx.onclick = () => { trPick(); drawDrill(true); };
+    nx.focus({ preventScroll: true });
+  }
+  trTypeset(el);
+}
+function trCheck(idk) {
+  if (TR.phase !== "ask") return;
+  clearTimeout(trTm);
+  const inp = document.getElementById("trIn"), pre = document.getElementById("trPre");
+  const raw = idk ? "" : inp.value.trim();
+  let ast = null, verdict = { ok: false, note: "" };
+  if (!idk) {
+    if (!raw) { pre.className = "preview err"; pre.textContent = L("Type the derivative first, or press I don't know.", "Escreva primeiro a derivada, ou carregue em Não sei."); return; }
+    try { ast = trParse(raw); } catch (e) { pre.className = "preview err"; pre.textContent = L("Can't read that: ", "Não consigo ler isso: ") + e.message; return; }
+    verdict = trJudge(ast, TR.q);
+  }
+  const T = trState(), k = TR.q.r, before = trStatus(k);
+  const r = T.r[k] || (T.r[k] = { c: 0, w: 0, h: "" });
+  if (verdict.ok) { r.c++; T.c++; T.streak++; if (T.streak > T.best) T.best = T.streak; TR.sess.c++; }
+  else { r.w++; T.streak = 0; }
+  r.h = (String(r.h || "") + (verdict.ok ? "1" : "0")).slice(-10);
+  T.n++; TR.sess.n++;
+  save();
+  TR.phase = "done"; TR.input = raw;
+  TR.res = { ok: verdict.ok, idk, note: verdict.note, tex: ast ? trTex(ast) : "" };
+  const after = trStatus(k);
+  if (after === "mastered" && before !== "mastered") toast(L(`Mastered: ${trName(TR_BY.get(k))}`, `Dominada: ${trName(TR_BY.get(k))}`));
+  drawDrill(false); drawStats(); drawRules();
+}
+
 function renderRanks() {
   const rk = rankOf(S.rating);
   const rungs = TIERS.map((T, t) => {
@@ -2140,6 +2685,7 @@ function route() {
     current = "p-" + slug; renderProblem(slug);
   }
   else if (h === "learn") { current = "learn"; renderLearn(); }
+  else if (h === "train") { current = "train"; renderTrain(); }
   else if (/^c-[a-z-]+$/.test(h) && CBY.has(h.slice(2))) { current = h; renderConcept(h.slice(2)); }
   else if (h === "ranks") { current = "ranks"; renderRanks(); }
   else if (h === "board") { current = "board"; renderBoard(); }
@@ -2163,6 +2709,7 @@ document.addEventListener("click", e => {
 });
 document.addEventListener("keydown", e => {
   if (e.key === "/" && current === "problems" && document.activeElement?.id !== "q") { e.preventDefault(); document.getElementById("q")?.focus(); }
+  if (e.key === "Enter" && current === "train" && TR.phase === "done" && !e.target.closest("button, a, input, textarea, select")) { e.preventDefault(); trPick(); drawDrill(true); }
 });
 
 applyStatic();
