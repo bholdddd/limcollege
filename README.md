@@ -1,6 +1,6 @@
 # lim.college
 
-A ranked calculus problem ladder: 368 problems, Elo rating, nine ranks, concept explainers, player profiles and a leaderboard.
+A ranked math problem ladder in two subjects, each with its own rating, rank and leaderboard: 368 calculus problems and 208 linear algebra problems, Elo rating, nine ranks, monthly seasons, concept explainers, player profiles, English and Portuguese.
 
 It's a static site (no build step). Accounts, the leaderboard and profiles use a free [Supabase](https://supabase.com) project.
 
@@ -16,7 +16,7 @@ favicon.svg     tab icon
 ## 1. Set up Supabase (about 5 minutes)
 
 1. Create a free account at supabase.com and click **New project**. Any name and region (pick one close to your players); save the database password somewhere.
-2. When the project is ready, open **SQL Editor → New query**, paste the whole of `schema.sql`, and click **Run**. You should see "Success. No rows returned".
+2. When the project is ready, open **SQL Editor → New query**, paste the whole of `schema.sql`, and click **Run**. You should see "Success. No rows returned". (Updating an existing site? Run the whole file again: it only adds what's missing.)
 3. Open **Authentication → Sign In / Providers → Email**. Email sign-in is on by default. Decide on **Confirm email**:
    - On (default): new players must click a link in their inbox before they can sign in. Supabase's built-in mailer only sends a few emails per hour, which is fine for a small group.
    - Off: players can sign in right after creating an account. Simplest for a class or a group of friends.
