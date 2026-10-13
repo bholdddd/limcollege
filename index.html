@@ -450,7 +450,7 @@ textarea.inp{resize:vertical;min-height:90px;line-height:1.5}
   .grid2{grid-template-columns:minmax(0,1fr)}
   .soc-row{grid-template-columns:minmax(0,1fr)}
   .soc-row .help{grid-column:1}
-  .board .c-rank, .board .c-solved, .board .c-sub{display:none}
+  .board .c-rank, .board .c-solved{display:none}
   .stakes b{font-size:var(--t-sm)}
 }
 /* ---------- seasons ---------- */
@@ -505,7 +505,6 @@ textarea.inp{resize:vertical;min-height:90px;line-height:1.5}
 .prof-rank .sjn{font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--fg-3);min-width:9.5em}
 .prof-rank:not(.on){opacity:.72}
 .h-sub{font-weight:500;color:var(--fg-3);font-size:.7em}
-.bnote{font-size:var(--t-sm);margin-top:8px}
 @media (max-width:640px){ .prof-rank .sjn{min-width:0;width:100%} }
 .toolbar{grid-template-columns:minmax(0,1fr)}
 .mfresh .tag{white-space:normal;max-width:100%}
@@ -1466,7 +1465,7 @@ function renderHome() {
     <p class="sub">Aprenda a Integrar!</p>
     <div class="prose">
       <p>Entrou no <strong>lim.college</strong>, uma escada de problemas em duas disciplinas. <strong>Cálculo</strong>: limites, derivadas, integrais, séries, equações diferenciais e funções de várias variáveis. <strong>Álgebra Linear</strong>: sistemas de equações lineares, matrizes, determinantes, espaços vetoriais, aplicações lineares, valores próprios e produtos internos. Os problemas são escritos no espírito das olimpíadas. Sempre que um deles usa um conceito que ainda não viu, aparece uma explicação mesmo ao lado.</p>
-      <p>Cada disciplina tem o seu próprio rating, escalão e classificação, e a classificação geral pesa as duas por igual. Ao entrar, recebe o escalão Ferro <span class="inline-emb">${emblem(0)}</span> e um rating de ${START} em ambas. Cada problema tem um rating fixo. Resolva-o e ganha pontos; erre e perde alguns, ao estilo Elo. Suba por Bronze, Prata e Ouro <span class="inline-emb">${emblem(1)}${emblem(2)}${emblem(3)}</span>, até Mestre e Grão-Mestre <span class="inline-emb">${emblem(6)}${emblem(7)}</span>, e torne-se finalmente <strong>Ilimitado</strong> <span class="inline-emb">${emblem(8)}</span>.</p>
+      <p>Cada disciplina tem o seu próprio rating, escalão e classificação. Ao entrar, recebe o escalão Ferro <span class="inline-emb">${emblem(0)}</span> e um rating de ${START} em ambas. Cada problema tem um rating fixo. Resolva-o e ganha pontos; erre e perde alguns, ao estilo Elo. Suba por Bronze, Prata e Ouro <span class="inline-emb">${emblem(1)}${emblem(2)}${emblem(3)}</span>, até Mestre e Grão-Mestre <span class="inline-emb">${emblem(6)}${emblem(7)}</span>, e torne-se finalmente <strong>Ilimitado</strong> <span class="inline-emb">${emblem(8)}</span>.</p>
     </div>
   </section>
 
@@ -1515,7 +1514,7 @@ function renderHome() {
     <p class="sub">Learn to Integrate!</p>
     <div class="prose">
       <p>You have entered <strong>lim.college</strong>, a problem ladder in two subjects. <strong>Calculus</strong>: limits, derivatives, integrals, series, differential equations and several variables. <strong>Linear Algebra</strong>: linear systems, matrices, determinants, vector spaces, linear maps, eigenvalues and inner products. The problems are written in the olympiad spirit. Whenever one uses a concept you haven't met yet, an explainer appears right next to it.</p>
-      <p>Each subject has its own rating, rank and leaderboard, and the main leaderboard weighs the two equally. Entering, you receive your Iron rank <span class="inline-emb">${emblem(0)}</span> and a rating of ${START} in both. Every problem carries a fixed rating. Solve it and you gain points; miss it and you lose some, Elo-style. Climb through Bronze, Silver and Gold <span class="inline-emb">${emblem(1)}${emblem(2)}${emblem(3)}</span>, on to Master and Grandmaster <span class="inline-emb">${emblem(6)}${emblem(7)}</span>, and eventually become <strong>Limitless</strong> <span class="inline-emb">${emblem(8)}</span>.</p>
+      <p>Each subject has its own rating, rank and leaderboard. Entering, you receive your Iron rank <span class="inline-emb">${emblem(0)}</span> and a rating of ${START} in both. Every problem carries a fixed rating. Solve it and you gain points; miss it and you lose some, Elo-style. Climb through Bronze, Silver and Gold <span class="inline-emb">${emblem(1)}${emblem(2)}${emblem(3)}</span>, on to Master and Grandmaster <span class="inline-emb">${emblem(6)}${emblem(7)}</span>, and eventually become <strong>Limitless</strong> <span class="inline-emb">${emblem(8)}</span>.</p>
     </div>
   </section>
 
@@ -2360,12 +2359,12 @@ function renderRanks() {
         <p><strong>Miss it:</strong> you lose $KE$ and the problem locks for 24 hours. After the cooldown it is rated again, as many times as it takes.</p>
         <p><strong>Reveal the solution:</strong> counts as a miss (free during a cooldown) and takes the problem off the ladder for good.</p>
         <p><strong>K-factor:</strong> 80 for your first 10 rated results (placement), 56 through 40, then 40. Upsets pay big; beating problems far below you pays almost nothing.</p>
-        <p><strong>Two subjects:</strong> Calculus and Linear Algebra are rated separately. Each has its own rating, rank, K-factor, leaderboard and season badges, and both start at ${START}. The main leaderboard ranks everyone by their overall rating: 50% Calculus, 50% Linear Algebra.</p>`, `
+        <p><strong>Two subjects:</strong> Calculus and Linear Algebra are rated separately. Each has its own rating, rank, K-factor, leaderboard and season badges, and both start at ${START}.</p>`, `
         <p><strong>Acertar:</strong> ganha $K(1-E)$, ou metade disso se tiver aberto a sugestão.</p>
         <p><strong>Errar:</strong> perde $KE$ e o problema fica bloqueado durante 24 horas. Depois da pausa volta a contar, tantas vezes quantas forem precisas.</p>
         <p><strong>Revelar a resolução:</strong> conta como um erro (sem custo durante uma pausa) e tira o problema da escada para sempre.</p>
         <p><strong>Fator K:</strong> 80 nos primeiros 10 resultados (colocação), 56 até ao 40.º, e depois 40. As surpresas pagam muito; resolver problemas muito abaixo do seu nível quase não dá nada.</p>
-        <p><strong>Duas disciplinas:</strong> Cálculo e Álgebra Linear têm ratings separados. Cada uma tem o seu rating, escalão, fator K, classificação e emblemas de época, e ambas começam em ${START}. A classificação principal ordena todos pelo rating geral: 50% Cálculo e 50% Álgebra Linear.</p>`)}
+        <p><strong>Duas disciplinas:</strong> Cálculo e Álgebra Linear têm ratings separados. Cada uma tem o seu rating, escalão, fator K, classificação e emblemas de época, e ambas começam em ${START}.</p>`)}
       </div>
     </div>
   </section>
@@ -2535,7 +2534,7 @@ function playerMatches(q, limit) {
       return { r, score: h === s ? 0 : h.startsWith(s) ? 1 : h.includes(s) ? 2 : sc.includes(s) ? 3 : yr.includes(s) ? 4 : -1 };
     })
     .filter(x => x.score >= 0)
-    .sort((a, b) => a.score - b.score || overallOf(b.r).rating - overallOf(a.r).rating)
+    .sort((a, b) => a.score - b.score || subOf(b.r).rating - subOf(a.r).rating)
     .slice(0, limit).map(x => x.r);
 }
 const subline = r => [str(r.school, 80), yearLabel(str(r.year, 40))].filter(Boolean).join(" · ");
@@ -2562,7 +2561,7 @@ function setupPlayerSearch() {
     else {
       const m = playerMatches(q, 6);
       html = m.length
-        ? m.map(r => { const x = overallOf(r), k = rankOf(x.rating); return `<a class="ps-item" role="option" aria-selected="false" href="#u-${esc(r.handle)}">${avatarImg(r, 28)}<span class="nm">${nameSpan("@" + rowName(r), r.id === cloud.uid ? myNameColor() : r.nameColor)}<small>${esc(subline(r) || L("No school listed", "Sem escola indicada"))}</small></span><span class="rp num" title="${esc(L("Overall rating", "Rating geral"))}">${emblem(k.t)}<span style="color:${tierColor(k.t)}">${x.rating}</span></span></a>`; }).join("") + `<a class="ps-item ps-all" role="option" aria-selected="false" href="#board" data-all="1">${L("All matches on the leaderboard →", "Todos os resultados na classificação →")}</a>`
+        ? m.map(r => { const x = subOf(r), k = rankOf(x.rating); return `<a class="ps-item" role="option" aria-selected="false" href="#u-${esc(r.handle)}">${avatarImg(r, 28)}<span class="nm">${nameSpan("@" + rowName(r), r.id === cloud.uid ? myNameColor() : r.nameColor)}<small>${esc(subline(r) || L("No school listed", "Sem escola indicada"))}</small></span><span class="rp num" title="${esc(SUBJ_NAME[SUBJ])}">${emblem(k.t)}<span style="color:${tierColor(k.t)}">${x.rating}</span></span></a>`; }).join("") + `<a class="ps-item ps-all" role="option" aria-selected="false" href="#board" data-all="1">${L("All matches on the leaderboard →", "Todos os resultados na classificação →")}</a>`
         : `<div class="ps-empty">${L(`No players match “${esc(q.trim())}”.`, `Nenhum jogador corresponde a “${esc(q.trim())}”.`)}</div>`;
     }
     pop.innerHTML = html; pop.hidden = false; inp.setAttribute("aria-expanded", "true");
@@ -2594,63 +2593,51 @@ function setupPlayerSearch() {
 
 /* ============================== leaderboard ============================== */
 let boardQ = "";
-/* the overall rating weighs both subjects equally: 50% calculus, 50% linear algebra */
-function overallOf(r) {
-  const c = subOf(r, "calc"), a = subOf(r, "la");
-  return { rating: Math.round((c.rating + a.rating) / 2), solved: c.solved + a.solved, n: c.n + a.n, calc: c.rating, la: a.rating };
-}
-const statOf = (r, view) => view === "all" ? overallOf(r) : subOf(r, view);
-/* the leaderboard opens on the overall ladder; each subject has its own ladder too */
-let boardView = "all";
-const BOARD_NAME = { get all() { return L("Overall", "Geral"); }, get calc() { return SUBJ_NAME.calc; }, get la() { return SUBJ_NAME.la; } };
-const boardSwitch = () => `<div class="subjrow"><div class="seg subj" role="group" aria-label="${L("Leaderboard", "Classificação")}">${["all", ...SUBJECTS].map(v => `<button type="button" class="segb" data-bview="${v}" aria-pressed="${boardView === v}">${esc(BOARD_NAME[v])}</button>`).join("")}</div>
-  <p class="muted bnote">${boardView === "all" ? L("Overall rating = 50% Calculus + 50% Linear Algebra.", "Rating geral = 50% Cálculo + 50% Álgebra Linear.") : L(`Ranked by ${SUBJ_NAME[boardView]} rating only.`, `Ordenada só pelo rating de ${SUBJ_NAME[boardView]}.`)}</p></div>`;
-/* one ladder per view: players with at least one rated result in it, plus you */
-function boardList(view = boardView) {
+/* one ladder per subject: players with at least one rated result in it, plus you */
+function boardList(sub = SUBJ) {
   /* your own row shows what this device knows, so a fresh result appears before the next refresh */
   const mine = cloud.uid && cloud.canWrite !== false ? myRow() : null;
-  return (cloud.board || []).filter(r => typeof r.rating === "number" && (r.id === cloud.uid || statOf(r, view).n > 0))
+  return (cloud.board || []).filter(r => typeof r.rating === "number" && (r.id === cloud.uid || subOf(r, sub).n > 0))
     .map(r => mine && r.id === cloud.uid ? Object.assign({}, r, mine) : r)
-    .sort((a, b) => statOf(b, view).rating - statOf(a, view).rating);
+    .sort((a, b) => subOf(b, sub).rating - subOf(a, sub).rating);
 }
 function renderBoard() {
-  const me = statOf(myRow(), boardView), rk = rankOf(me.rating);
-  const head = `<div class="ph"><div><div class="eyebrow">${L("Live ladder", "Escada ao vivo")} · ${esc(BOARD_NAME[boardView])}</div><h1>${L("Leaderboard", "Classificação")}</h1></div><a class="btn" href="#edit">${L("Edit your profile", "Editar o seu perfil")}</a></div>`;
+  const rk = rankOf(REC().rating);
+  const head = `<div class="ph"><div><div class="eyebrow">${L("Live ladder", "Escada ao vivo")} · ${esc(SUBJ_NAME[SUBJ])}</div><h1>${L("Leaderboard", "Classificação")}</h1></div><a class="btn" href="#edit">${L("Edit your profile", "Editar o seu perfil")}</a></div>`;
   if (cloud.connecting) { app.innerHTML = `${head}<div class="empty">${L("Loading the ladder…", "A carregar a escada…")}</div>`; return; }
   if (!cloud.db) {
-    app.innerHTML = `${head}<section class="section" style="margin-top:20px"><div class="panel prose"><p>${L("The shared leaderboard isn't available on this copy of the site.", "A classificação partilhada não está disponível nesta cópia do site.")}</p><p>${L("Right now you're playing offline:", "Neste momento está a jogar offline:")} <strong style="color:${tierColor(rk.t)}">${esc(rk.label)}</strong> ${L("at", "com")} <strong class="num">${me.rating}</strong> ${boardView === "all" ? L("overall", "no geral") : L("in", "em") + " " + esc(SUBJ_NAME[boardView])}${L(", saved in this browser.", ", guardado neste navegador.")} <a href="#me">${L("See your profile", "Ver o seu perfil")}</a>.</p></div></section>`;
+    app.innerHTML = `${head}<section class="section" style="margin-top:20px"><div class="panel prose"><p>${L("The shared leaderboard isn't available on this copy of the site.", "A classificação partilhada não está disponível nesta cópia do site.")}</p><p>${L("Right now you're playing offline:", "Neste momento está a jogar offline:")} <strong style="color:${tierColor(rk.t)}">${esc(rk.label)}</strong> ${L("at", "com")} <strong class="num">${REC().rating}</strong> ${L("in", "em")} ${esc(SUBJ_NAME[SUBJ])}${L(", saved in this browser.", ", guardado neste navegador.")} <a href="#me">${L("See your profile", "Ver o seu perfil")}</a>.</p></div></section>`;
     return;
   }
   const mine = cloud.board && cloud.uid ? cloud.board.find(r => r.id === cloud.uid) : null;
   const note = !cloud.uid ? (cloud.kind === "supabase" ? L(`${signInLink("Sign in")} or <a href="#signup">create an account</a> to join the ladder.`, `${signInLink("Inicie sessão")} ou <a href="#signup">crie uma conta</a> para entrar na escada.`) : L("Sign in to claude.ai to join the ladder.", "Inicie sessão no claude.ai para entrar na escada.")) : cloud.canWrite === false ? L("Your access to this page is view-only, so you can browse profiles but can't post your own. Ask the owner for contributor access to join.", "O seu acesso a esta página é só de leitura: pode ver perfis, mas não publicar o seu. Peça ao dono acesso de colaborador para entrar.") : !mine ? L("Submit an answer or save your profile to appear here.", "Submeta uma resposta ou guarde o seu perfil para aparecer aqui.") : "";
   app.innerHTML = `${head}
-  ${boardSwitch()}
+  ${subjSwitch()}
   <div class="toolbar"><div class="tb-row"><label class="search"><span aria-hidden="true">@</span><input id="bq" type="search" placeholder="${L("Search players by username, school or year", "Procurar jogadores por nome, escola ou ano")}" value="${esc(boardQ)}" aria-label="${L("Search players", "Procurar jogadores")}" autocomplete="off"></label><span class="muted num" id="bcount" style="font-size:var(--t-sm)"></span></div></div>
   ${note ? `<p class="muted" style="margin-top:12px"${cloud.uid && cloud.canWrite !== false && !mine ? ' id="bnoteMine"' : ""}>${note}</p>` : ""}
-  <div class="table-wrap" style="overflow-x:auto"><table class="board"><thead><tr><th>#</th><th>${L("Player", "Jogador")}</th><th class="c-rank">${L("Rank", "Escalão")}</th><th>Rating</th>${boardView === "all" ? SUBJECTS.map(sub => `<th class="c-sub" title="${esc(SUBJ_NAME[sub])}">${esc(SUBJ_TAG[sub])}</th>`).join("") : ""}<th class="c-solved">${L("Solved", "Resolvidos")}</th></tr></thead><tbody id="brows"></tbody></table></div>`;
+  <div class="table-wrap" style="overflow-x:auto"><table class="board"><thead><tr><th>#</th><th>${L("Player", "Jogador")}</th><th class="c-rank">${L("Rank", "Escalão")}</th><th>Rating</th><th class="c-solved">${L("Solved", "Resolvidos")}</th></tr></thead><tbody id="brows"></tbody></table></div>`;
   const bq = document.getElementById("bq");
   bq.addEventListener("input", () => { boardQ = bq.value; drawBoardRows(); });
-  app.querySelectorAll("[data-bview]").forEach(b => b.addEventListener("click", () => { if (boardView !== b.dataset.bview) { boardView = b.dataset.bview; renderBoard(); } }));
   drawBoardRows();
 }
 function drawBoardRows() {
   const tb = document.getElementById("brows");
   if (!tb) return;
-  if (!cloud.board) { tb.innerHTML = `<tr><td colspan="${boardView === "all" ? 7 : 5}" class="empty">${cloud.boardErr ? L("The leaderboard couldn't load. Your own progress is unaffected.", "Não foi possível carregar a classificação. O seu progresso não é afetado.") : L("Loading the ladder…", "A carregar a escada…")}</td></tr>`; return; }
+  if (!cloud.board) { tb.innerHTML = `<tr><td colspan="5" class="empty">${cloud.boardErr ? L("The leaderboard couldn't load. Your own progress is unaffected.", "Não foi possível carregar a classificação. O seu progresso não é afetado.") : L("Loading the ladder…", "A carregar a escada…")}</td></tr>`; return; }
   const all = boardList();
   const pos = new Map(all.map((r, i) => [r.id, i + 1]));
   if (pos.has(cloud.uid)) document.getElementById("bnoteMine")?.remove();
   const list = boardQ.trim() ? playerMatches(boardQ, 1000).filter(r => pos.has(r.id)).sort((a, b) => pos.get(a.id) - pos.get(b.id)) : all;
   const cnt = document.getElementById("bcount");
   if (cnt) cnt.textContent = boardQ.trim() ? L(`${list.length} of ${all.length} players`, `${list.length} de ${all.length} jogadores`) : L(`${all.length} ${all.length === 1 ? "player" : "players"}`, `${all.length} ${all.length === 1 ? "jogador" : "jogadores"}`);
-  if (!list.length) { tb.innerHTML = `<tr><td colspan="${boardView === "all" ? 7 : 5}" class="empty">${all.length ? L(`No players match “${esc(boardQ.trim())}”.`, `Nenhum jogador corresponde a “${esc(boardQ.trim())}”.`) : (boardView === "all" ? L("No one on the ladder yet. Solve a problem to be first.", "Ainda não há ninguém na escada. Resolva um problema para ser o primeiro.") : L(`No one on the ${SUBJ_NAME[boardView]} ladder yet. Solve a problem to be first.`, `Ainda não há ninguém na escada de ${SUBJ_NAME[boardView]}. Resolva um problema para ser o primeiro.`))}</td></tr>`; return; }
+  if (!list.length) { tb.innerHTML = `<tr><td colspan="5" class="empty">${all.length ? L(`No players match “${esc(boardQ.trim())}”.`, `Nenhum jogador corresponde a “${esc(boardQ.trim())}”.`) : L(`No one on the ${SUBJ_NAME[SUBJ]} ladder yet. Solve a problem to be first.`, `Ainda não há ninguém na escada de ${SUBJ_NAME[SUBJ]}. Resolva um problema para ser o primeiro.`)}</td></tr>`; return; }
   tb.innerHTML = list.map(r => {
-    const x = statOf(r, boardView), k = rankOf(x.rating), h = typeof r.handle === "string" && /^[a-z0-9_.-]{3,20}$/.test(r.handle) ? r.handle : "";
+    const x = subOf(r), k = rankOf(x.rating), h = typeof r.handle === "string" && /^[a-z0-9_.-]{3,20}$/.test(r.handle) ? r.handle : "";
     return `<tr class="${r.id === cloud.uid ? "me" : ""}" ${h ? `data-h="${esc(h)}" tabindex="0" aria-label="${L(`Open @${esc(rowName(r))}'s profile`, `Abrir o perfil de @${esc(rowName(r))}`)}"` : ""}>
       <td class="num">${pos.get(r.id)}</td>
       <td><span class="who">${avatarImg(r, 32)}<span class="whot"><span class="nm">${nameSpan("@" + rowName(r), r.id === cloud.uid ? myNameColor() : r.nameColor)}${r.id === cloud.uid ? ` <em class="you">${L("you", "você")}</em>` : ""}</span><small>${esc(subline(r))}</small></span></span></td>
       <td class="c-rank"><span class="rp">${emblem(k.t)}<span style="color:${tierColor(k.t)}">${esc(k.label)}</span></span></td>
-      <td class="num">${x.rating}</td>${boardView === "all" ? `<td class="num c-sub muted">${x.calc}</td><td class="num c-sub muted">${x.la}</td>` : ""}<td class="num c-solved">${x.solved}</td></tr>`;
+      <td class="num">${x.rating}</td><td class="num c-solved">${x.solved}</td></tr>`;
   }).join("");
   hydrateAvatars(tb);
   const open = tr => { if (tr && tr.dataset.h) location.hash = "u-" + tr.dataset.h; };
@@ -2679,10 +2666,6 @@ function renderProfile(handle) {
     const x = subOf(r, sub), k = rankOf(x.rating), pos = cloud.board && x.n > 0 ? boardList(sub).findIndex(y => y.id === pid) : -1;
     return `<div class="prof-rank${sub === SUBJ ? " on" : ""}"><span class="sjn">${esc(SUBJ_NAME[sub])}</span>${emblem(k.t)}<b style="color:${tierColor(k.t)}">${esc(k.label)}</b><span class="num">${x.rating} rating</span><span class="num muted">${L("peak", "máximo")} ${x.peak}</span>${pos >= 0 ? `<span class="num muted">${L(`#${pos + 1} on the ladder`, `#${pos + 1} na escada`)}</span>` : x.n ? "" : `<span class="muted">${L("no rated results yet", "ainda sem resultados")}</span>`}</div>`;
   };
-  const overallLine = () => {
-    const x = overallOf(r), k = rankOf(x.rating), pos = cloud.board && x.n > 0 ? boardList("all").findIndex(y => y.id === pid) : -1;
-    return `<div class="prof-rank on ov"><span class="sjn">${L("Overall", "Geral")}</span>${emblem(k.t)}<b style="color:${tierColor(k.t)}">${esc(k.label)}</b><span class="num">${x.rating} rating</span><span class="muted">50% ${esc(SUBJ_TAG.calc)} + 50% ${esc(SUBJ_TAG.la)}</span>${pos >= 0 ? `<span class="num muted">${L(`#${pos + 1} on the ladder`, `#${pos + 1} na escada`)}</span>` : ""}</div>`;
-  };
   const joined = numOr(r.joined, 0) ? new Date(r.joined).toLocaleDateString(LOCALE(), { month: "short", year: "numeric" }) : "";
   const school = str(r.school, 80), year = yearLabel(str(r.year, 40)), bio = str(r.bio, 160);
   const sb = X.solvedBy;
@@ -2703,7 +2686,7 @@ function renderProfile(handle) {
       ${avatarImg(isMe ? myRow() : r, 104, "av-xl")}
       <div class="prof-id">
         <h1>${nameSpan("@" + name, isMe ? myNameColor() : r.nameColor)}</h1>
-        <div class="prof-ranks">${overallLine()}${SUBJECTS.map(rankLine).join("")}</div>
+        <div class="prof-ranks">${SUBJECTS.map(rankLine).join("")}</div>
         <div class="prof-meta">${school ? `<span>${L("studies at", "estuda em")} <b>${esc(school)}</b></span>` : ""}${year ? `<span><b>${esc(year)}</b></span>` : ""}${joined ? `<span>${L("joined", "entrou em")} ${esc(joined)}</span>` : ""}</div>
       </div>
       <div class="prof-actions actions">${isMe ? `<a class="btn primary" href="#edit">${L("Edit profile", "Editar perfil")}</a>${cloud.kind === "supabase" ? (cloud.uid ? `<button class="btn ghost" type="button" id="pSignOut">${L("Sign out", "Terminar sessão")}</button>` : `<a class="btn" href="#login">${L("Sign in", "Iniciar sessão")}</a>`) : ""}` : ""}</div>
