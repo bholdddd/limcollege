@@ -624,9 +624,10 @@ ALL_PROBS.forEach(p => { if (p.sub !== "la") p.sub = "calc"; });
 const PBY = Object.fromEntries(SUBJECTS.map(s => [s, ALL_PROBS.filter(p => p.sub === s)]));
 SUBJECTS.forEach(s => PBY[s].forEach((p, i) => { p.n = i + 1; }));
 /* Every problem is worth a fixed number of points: you gain them when you solve it and lose them when you miss it.
-   Points grow with the square of the problem's rating; each subject has its own scale so that clearing a whole subject
-   is worth about 2700 (easy problems take you to Silver, medium to Emerald, hard to Grandmaster, the IMO track past Limitless). */
-const PTS_SCALE = { calc: 0.0358, la: 0.0623 };
+   Points grow with the square of the problem's rating; each subject has its own scale (so that both are worth the same in
+   total), boosted 2.2x: clearing a subject's easy problems takes you to about Gold, and adding the medium ones to Limitless. */
+const PTS_BOOST = 2.2;
+const PTS_SCALE = { calc: 0.0358 * PTS_BOOST, la: 0.0623 * PTS_BOOST };
 const ptsFor = (r, sub) => Math.max(1, Math.round((PTS_SCALE[sub] || PTS_SCALE.calc) * (r / 100) ** 2));
 ALL_PROBS.forEach(p => { p.pts = ptsFor(p.r, p.sub); });
 const winPts = (p, hint) => hint ? Math.max(1, Math.round(p.pts / 2)) : p.pts;
@@ -2414,11 +2415,11 @@ function renderRanks() {
         <p><strong>Solve it:</strong> you gain its points, or half of them (rounded) if you opened the hint.</p>
         <p><strong>Miss it:</strong> you lose its points and the problem locks for 24 hours. After the cooldown it counts again, as many times as it takes.</p>
         <p><strong>Reveal the solution:</strong> counts as a miss (free during a cooldown) and takes the problem off the ladder for good.</p>
-        <p><strong>Two subjects:</strong> Calculus and Linear Algebra are rated separately. Each has its own rating, rank, leaderboard and season badges, and both start at ${START}. Clearing every easy problem of a subject takes you to about Silver, the medium ones to Emerald, the hard ones to Grandmaster, and the IMO track to Limitless.</p>`, `
+        <p><strong>Two subjects:</strong> Calculus and Linear Algebra are rated separately. Each has its own rating, rank, leaderboard and season badges, and both start at ${START}. Clearing every easy problem of a subject takes you to about Gold, and the medium ones on top of that take you to Limitless; the hard and IMO tracks are where the top players pull ahead.</p>`, `
         <p><strong>Acertar:</strong> ganha os pontos do problema, ou metade (arredondada) se tiver aberto a sugestão.</p>
         <p><strong>Errar:</strong> perde os pontos do problema e ele fica bloqueado durante 24 horas. Depois da pausa volta a contar, tantas vezes quantas forem precisas.</p>
         <p><strong>Revelar a resolução:</strong> conta como um erro (sem custo durante uma pausa) e tira o problema da escada para sempre.</p>
-        <p><strong>Duas disciplinas:</strong> Cálculo e Álgebra Linear têm ratings separados. Cada uma tem o seu rating, escalão, classificação e emblemas de época, e ambas começam em ${START}. Resolver todos os problemas fáceis de uma disciplina leva-o até cerca de Prata, os médios até Esmeralda, os difíceis até Grão-Mestre, e o percurso IMO até Ilimitado.</p>`)}
+        <p><strong>Duas disciplinas:</strong> Cálculo e Álgebra Linear têm ratings separados. Cada uma tem o seu rating, escalão, classificação e emblemas de época, e ambas começam em ${START}. Resolver todos os problemas fáceis de uma disciplina leva-o até cerca de Ouro, e juntar-lhes os médios leva-o até Ilimitado; os percursos difícil e IMO são onde os melhores se destacam.</p>`)}
       </div>
     </div>
   </section>
