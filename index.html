@@ -623,6 +623,13 @@ const ALL_PROBS = DATA.problems;
 ALL_PROBS.forEach(p => { if (p.sub !== "la") p.sub = "calc"; });
 const PBY = Object.fromEntries(SUBJECTS.map(s => [s, ALL_PROBS.filter(p => p.sub === s)]));
 SUBJECTS.forEach(s => PBY[s].forEach((p, i) => { p.n = i + 1; }));
+/* Every problem is worth a fixed number of points: you gain them when you solve it and lose them when you miss it.
+   Points grow with the square of the problem's rating; each subject has its own scale so that clearing a whole subject
+   is worth about 2700 (easy problems take you to Silver, medium to Emerald, hard to Grandmaster, the IMO track past Limitless). */
+const PTS_SCALE = { calc: 0.0358, la: 0.0623 };
+const ptsFor = (r, sub) => Math.max(1, Math.round((PTS_SCALE[sub] || PTS_SCALE.calc) * (r / 100) ** 2));
+ALL_PROBS.forEach(p => { p.pts = ptsFor(p.r, p.sub); });
+const winPts = (p, hint) => hint ? Math.max(1, Math.round(p.pts / 2)) : p.pts;
 const BY_SLUG = new Map(ALL_PROBS.map(p => [p.s, p]));
 const ALL_CONCEPTS = DATA.concepts;
 ALL_CONCEPTS.forEach(c => { if (c.sub !== "la") c.sub = "calc"; });
@@ -779,6 +786,54 @@ function finalizeSeasons() {
 const LS_KEY = "limcollege:v1", UI_KEY = "limcollege:ui";
 /* calculus keeps its record at the top level of S (as before linear algebra existed); linear algebra's lives in S.la */
 const freshRec = () => ({ rating: START, peak: START, n: 0, hist: [], recent: [] });
+/* Ratings used to be Elo. The full rated history (problem, outcome, time) is stored, so each record is replayed with the
+   fixed points: the result is exactly what the player would have had under the points system from the start. Replaying
+   is idempotent, so it runs on every load, which also corrects anything written by an old copy of the page. */
+let scoringMigrated = false;
+function rescore(s) {
+  let changed = false;
+  const perProblem = {};
+  for (const sub of SUBJECTS) {
+    const R = sub === "calc" ? s : s[sub];
+    if (!R || !Array.isArray(R.hist)) continue;
+    let rating = START, peak = START;
+    for (const h of R.hist) {
+      if (!h || typeof h !== "object") continue;
+      const p = h.p ? BY_SLUG.get(h.p) : null;
+      const win = h.o ? h.o === "w" : h.d > 0;
+      const ps = p && s.probs ? s.probs[h.p] : null;
+      /* a solve ends rated play on a problem, so a hint recorded on it was opened before the solve */
+      const d = p ? (win ? winPts(p, ps && ps.hint) : -p.pts) : (Number.isFinite(h.d) ? h.d : 0);
+      const before = rating;
+      rating = Math.max(0, rating + d);
+      if (rating > peak) peak = rating;
+      const nd = rating - before;
+      if (h.d !== nd || h.r !== rating) { h.d = nd; h.r = rating; changed = true; }
+      if (!h.o) h.o = win ? "w" : "l";
+      if (p) perProblem[h.p] = (perProblem[h.p] || 0) + nd;
+    }
+    if (R.rating !== rating || R.peak !== peak) { R.rating = rating; R.peak = peak; changed = true; }
+  }
+  for (const [slug, ps] of Object.entries(s.probs || {})) {
+    const p = BY_SLUG.get(slug);
+    if (!p || !ps || typeof ps !== "object") continue;
+    if (slug in perProblem && ps.delta !== perProblem[slug]) { ps.delta = perProblem[slug]; changed = true; }
+    for (const g of Array.isArray(ps.guesses) ? ps.guesses : []) {
+      if (!g || g.prac || !Number.isFinite(g.d)) continue;
+      const nd = g.ok ? winPts(p, ps.hint) : -p.pts;
+      if (g.d !== nd) { g.d = nd; changed = true; }
+    }
+  }
+  /* season badges already earned are recomputed from the re-scored history */
+  for (const b of Array.isArray(s.seasons) ? s.seasons : []) {
+    if (!b || !Number.isInteger(b.n)) continue;
+    const R = !b.sub || b.sub === "calc" ? s : s[b.sub];
+    const st = R && Array.isArray(R.hist) ? seasonStats(b.n, R.hist) : null;
+    if (!st) continue;
+    for (const k of ["t", "i", "r", "s", "pk", "w", "l"]) if (b[k] !== st[k]) { b[k] = st[k]; changed = true; }
+  }
+  return changed;
+}
 const fresh = () => ({ v: 2, rating: START, peak: START, n: 0, hist: [], probs: {}, seen: {}, updated: 0, joined: 0, recent: [], la: freshRec(), profile: { username: "", bio: "", school: "", year: "", socials: {}, avatar: "", avatarV: 0 } });
 const REC = (sub = SUBJ) => sub === "la" ? S.la : S;
 /* v1 keyed problems by their old list number and capped tries at 3; v2 keys by slug and uses a 24h lock after a miss */
@@ -807,11 +862,13 @@ function normalize(s) {
   const la = s.la && typeof s.la === "object" ? s.la : {}, okN = v => typeof v === "number" && Number.isFinite(v);
   s.la = { rating: okN(la.rating) ? la.rating : START, peak: okN(la.peak) ? la.peak : okN(la.rating) ? la.rating : START, n: okN(la.n) ? la.n : 0,
     hist: Array.isArray(la.hist) ? la.hist : [], recent: Array.isArray(la.recent) ? la.recent : [] };
+  if (rescore(s)) scoringMigrated = true;
   return s;
 }
 function lsGet(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 let S = normalize(Object.assign(fresh(), lsGet(LS_KEY) || {}));
+if (scoringMigrated) lsSet(LS_KEY, S);
 const prog = s => S.probs[s] || (S.probs[s] = { solved: false, solvedAt: 0, lockUntil: 0, misses: 0, closed: false, revealed: false, hint: false, guesses: [], delta: 0 });
 const peekProg = s => S.probs[s] || null;
 let UI = Object.assign({ diff: [], status: "all", concept: "all", set: "all", sort: "diff-asc", q: "", subj: "calc" }, lsGet(UI_KEY) || {});
@@ -1017,6 +1074,8 @@ const cloud = {
       S = normalize(Object.assign(fresh(), JSON.parse(JSON.stringify(remote))));
       lsSet(LS_KEY, S);
     } else if (S.updated) this.queue();
+    /* publish ratings that were just re-scored */
+    if (scoringMigrated) { scoringMigrated = false; lsSet(LS_KEY, S); this.queue(); }
     syncLang();
     setSaveNote();
     if (!this.connecting) refreshView();
@@ -1139,14 +1198,12 @@ function bindLang(root) { root.querySelectorAll("[data-lang]").forEach(b => b.ad
 function refreshView() { if (current !== "edit" && current !== "login" && current !== "reset") route(); else renderNav(); }
 
 /* ============================== rating ============================== */
-const kFactor = n => n < 10 ? 80 : n < 40 ? 56 : 40;
 const expected = (ru, rp) => 1 / (1 + Math.pow(10, (rp - ru) / 400));
 const isLocked = ps => !!ps && !ps.solved && !ps.closed && (ps.lockUntil || 0) > Date.now();
 const isRated = ps => !ps || (!ps.solved && !ps.closed && !((ps.lockUntil || 0) > Date.now()));
 function stakes(p) {
-  const ps = peekProg(p.s), R = REC(p.sub);
-  const e = expected(R.rating, p.r), k = kFactor(R.n);
-  return { e, k, gain: Math.max(1, Math.round(k * (1 - e) * (ps && ps.hint ? 0.5 : 1))), loss: Math.max(1, Math.round(k * e)) };
+  const ps = peekProg(p.s);
+  return { gain: winPts(p, ps && ps.hint), loss: p.pts };
 }
 function applyDelta(slug, d, outcome) {
   const R = REC(BY_SLUG.get(slug)?.sub || "calc");
@@ -1386,7 +1443,7 @@ function rankCard() {
       <span>${next ? `${L("Next", "Seguinte")}: ${esc(next.label)}` : L("Top division reached", "Divisão máxima atingida")}</span><b class="num">${next ? L(`${rk.hi - R.rating} to go`, `faltam ${rk.hi - R.rating}`) : "∞"}</b>
       <span>${L("Peak rating", "Rating máximo")}</span><b class="num">${R.peak}</b>
       <span>${L("Problems solved", "Problemas resolvidos")}</span><b class="num">${solved} / ${SP().length}</b>
-      <span>${L("K-factor", "Fator K")}</span><b class="num">${kFactor(R.n)}${R.n < 10 ? L(" · placement", " · colocação") : ""}</b>
+      <span>${L("Rated results", "Resultados com rating")}</span><b class="num">${R.n}</b>
       <span>${L("Profile", "Perfil")}</span><b><a href="#me">${S.profile.username ? nameSpan("@" + S.profile.username, myNameColor()) : L("set it up", "configurar")}</a></b>
       ${seasonNow() >= 1 ? `<span>${seasonLabel(seasonNow())}</span><b class="num">${L(`ends in ${untilText(seasonEnd(seasonNow()) - Date.now())}`, `termina daqui a ${untilText(seasonEnd(seasonNow()) - Date.now())}`)}</b>` : ""}
     </div>
@@ -1465,7 +1522,7 @@ function renderHome() {
     <p class="sub">Aprenda a Integrar!</p>
     <div class="prose">
       <p>Entrou no <strong>lim.college</strong>, uma escada de problemas em duas disciplinas. <strong>Cálculo</strong>: limites, derivadas, integrais, séries, equações diferenciais e funções de várias variáveis. <strong>Álgebra Linear</strong>: sistemas de equações lineares, matrizes, determinantes, espaços vetoriais, aplicações lineares, valores próprios e produtos internos. Os problemas são escritos no espírito das olimpíadas. Sempre que um deles usa um conceito que ainda não viu, aparece uma explicação mesmo ao lado.</p>
-      <p>Cada disciplina tem o seu próprio rating, escalão e classificação. Ao entrar, recebe o escalão Ferro <span class="inline-emb">${emblem(0)}</span> e um rating de ${START} em ambas. Cada problema tem um rating fixo. Resolva-o e ganha pontos; erre e perde alguns, ao estilo Elo. Suba por Bronze, Prata e Ouro <span class="inline-emb">${emblem(1)}${emblem(2)}${emblem(3)}</span>, até Mestre e Grão-Mestre <span class="inline-emb">${emblem(6)}${emblem(7)}</span>, e torne-se finalmente <strong>Ilimitado</strong> <span class="inline-emb">${emblem(8)}</span>.</p>
+      <p>Cada disciplina tem o seu próprio rating, escalão e classificação. Ao entrar, recebe o escalão Ferro <span class="inline-emb">${emblem(0)}</span> e um rating de ${START} em ambas. Cada problema vale um número fixo de pontos, consoante a dificuldade: resolva-o e ganha esses pontos; erre e perde-os. Suba por Bronze, Prata e Ouro <span class="inline-emb">${emblem(1)}${emblem(2)}${emblem(3)}</span>, até Mestre e Grão-Mestre <span class="inline-emb">${emblem(6)}${emblem(7)}</span>, e torne-se finalmente <strong>Ilimitado</strong> <span class="inline-emb">${emblem(8)}</span>.</p>
     </div>
   </section>
 
@@ -1476,7 +1533,7 @@ function renderHome() {
 
   <section class="section">
     <h2>O Seu Percurso: Próximos Passos</h2>
-    <p>Escolhidos logo acima do seu rating, onde o retorno Elo é melhor. Dê um passo e o seguinte revela-se.</p>
+    <p>Escolhidos um pouco acima do seu nível, onde vai aprender mais. Dê um passo e o seguinte revela-se.</p>
     <div class="steps">${steps.length ? steps.map(p => stepRow(p)).join("") : `<div class="empty">Já começou todos os problemas. Respeito.</div>`}</div>
   </section>
   ${retry.length ? `<section class="section"><h2>Prontos para Nova Tentativa</h2><p>Errou estes antes. A pausa terminou, por isso voltam a contar.</p><div class="steps">${retry.map(p => stepRow(p)).join("")}</div></section>` : ""}
@@ -1514,7 +1571,7 @@ function renderHome() {
     <p class="sub">Learn to Integrate!</p>
     <div class="prose">
       <p>You have entered <strong>lim.college</strong>, a problem ladder in two subjects. <strong>Calculus</strong>: limits, derivatives, integrals, series, differential equations and several variables. <strong>Linear Algebra</strong>: linear systems, matrices, determinants, vector spaces, linear maps, eigenvalues and inner products. The problems are written in the olympiad spirit. Whenever one uses a concept you haven't met yet, an explainer appears right next to it.</p>
-      <p>Each subject has its own rating, rank and leaderboard. Entering, you receive your Iron rank <span class="inline-emb">${emblem(0)}</span> and a rating of ${START} in both. Every problem carries a fixed rating. Solve it and you gain points; miss it and you lose some, Elo-style. Climb through Bronze, Silver and Gold <span class="inline-emb">${emblem(1)}${emblem(2)}${emblem(3)}</span>, on to Master and Grandmaster <span class="inline-emb">${emblem(6)}${emblem(7)}</span>, and eventually become <strong>Limitless</strong> <span class="inline-emb">${emblem(8)}</span>.</p>
+      <p>Each subject has its own rating, rank and leaderboard. Entering, you receive your Iron rank <span class="inline-emb">${emblem(0)}</span> and a rating of ${START} in both. Every problem is worth a fixed number of points, set by its difficulty: solve it and you gain them; miss it and you lose them. Climb through Bronze, Silver and Gold <span class="inline-emb">${emblem(1)}${emblem(2)}${emblem(3)}</span>, on to Master and Grandmaster <span class="inline-emb">${emblem(6)}${emblem(7)}</span>, and eventually become <strong>Limitless</strong> <span class="inline-emb">${emblem(8)}</span>.</p>
     </div>
   </section>
 
@@ -1525,7 +1582,7 @@ function renderHome() {
 
   <section class="section">
     <h2>Your Journey: Next Steps</h2>
-    <p>Picked to sit just above your rating, where the Elo payoff is best. Take a step, and the next will reveal itself.</p>
+    <p>Picked to sit just above your level, where you'll learn the most. Take a step, and the next will reveal itself.</p>
     <div class="steps">${steps.length ? steps.map(p => stepRow(p)).join("") : `<div class="empty">You've started every problem. Respect.</div>`}</div>
   </section>
   ${retry.length ? `<section class="section"><h2>Ready for Another Shot</h2><p>You missed these before. The cooldown is over, so they count again.</p><div class="steps">${retry.map(p => stepRow(p)).join("")}</div></section>` : ""}
@@ -1699,7 +1756,7 @@ function renderProblem(slug) {
       <div class="stakes num" aria-label="${L("Rating stakes", "O que está em jogo")}">
         <div><small>${L("Solve", "Acertar")}</small><b class="g">${signed(st.gain)}</b></div>
         <div><small>${L("Miss", "Errar")}</small><b class="l">−${st.loss}</b></div>
-        <div><small>${L("Odds", "Probab.")}</small><b>${Math.round(st.e * 100)}%</b></div>
+        <div><small>${L("Your rating", "O seu rating")}</small><b>${REC(p.sub).rating}</b></div>
       </div>
       <p class="note">${ps && ps.misses ? L(`Back on the ladder after ${ps.misses} ${missWord(ps.misses)}. `, `De volta à escada depois de ${ps.misses} ${missWord(ps.misses)}. `) : ""}${L("A miss also locks this problem for 24 hours.", "Um erro também bloqueia este problema durante 24 horas.")}${ps && ps.hint ? L(" Hint used: gains are halved.", " Sugestão usada: os ganhos ficam a metade.") : ""}</p>`;
   }
@@ -1738,7 +1795,7 @@ function renderProblem(slug) {
       ${resultBox}
       ${consoleBody}
       ${log}
-      <p class="note">${L(`Odds use your ${SUBJ_NAME[p.sub]} rating (${REC(p.sub).rating}) against the problem's (${p.r}). K = ${st.k}.`, `A probabilidade compara o seu rating de ${SUBJ_NAME[p.sub]} (${REC(p.sub).rating}) com o do problema (${p.r}). K = ${st.k}.`)}</p>
+      <p class="note">${L(`This problem is worth ${p.pts} ${p.pts === 1 ? "point" : "points"}, set by its difficulty (rated ${p.r}): the same for everyone, whatever your rating.`, `Este problema vale ${p.pts} ${p.pts === 1 ? "ponto" : "pontos"}, definidos pela sua dificuldade (rating ${p.r}): o mesmo para todos, seja qual for o seu rating.`)}</p>
     </aside>
   </div>`;
 
@@ -2344,27 +2401,24 @@ function renderRanks() {
     }).join("");
     return `<div class="rung ${rk.t === t ? "here" : ""}">${emblem(t)}<div class="rn" style="color:${tierColor(t)}">${T.name}<small>${t === 0 ? L("everyone starts at ", "todos começam em ") + START : t === 8 ? L("solve the IMO track", "resolva o percurso IMO") : L(`from ${FLOORS[t * 3]}`, `a partir de ${FLOORS[t * 3]}`)}</small></div><div class="divs">${divs}</div></div>`;
   }).reverse().join("");
-  const bands = DIFFS.map(d => { const rs = SP().filter(p => p.d === d).map(p => p.r); const a = rankOf(Math.min(...rs)), b = rankOf(Math.max(...rs)); return `<div class="panel"><span class="diff ${d}">${DIFF_LABEL[d]}</span><b class="num">${Math.min(...rs)}–${Math.max(...rs)}</b><span class="muted" style="font-size:var(--t-xs)">${L(`${a.tier.name} to ${b.tier.name} level`, `nível ${a.tier.name} a ${b.tier.name}`)}</span></div>`; }).join("");
+  const bands = DIFFS.map(d => { const rs = SP().filter(p => p.d === d).map(p => p.r); const a = rankOf(Math.min(...rs)), b = rankOf(Math.max(...rs)); return `<div class="panel"><span class="diff ${d}">${DIFF_LABEL[d]}</span><b class="num">${Math.min(...rs)}–${Math.max(...rs)}</b><span class="muted" style="font-size:var(--t-xs)">${L(`${a.tier.name} to ${b.tier.name} level`, `nível ${a.tier.name} a ${b.tier.name}`)}</span><span class="num" style="font-size:var(--t-xs)">${L(`${ptsFor(Math.min(...rs), SUBJ)}–${ptsFor(Math.max(...rs), SUBJ)} points each`, `${ptsFor(Math.min(...rs), SUBJ)}–${ptsFor(Math.max(...rs), SUBJ)} pontos cada`)}</span></div>`; }).join("");
   app.innerHTML = `
   <div class="ph"><div><div class="eyebrow">${L("9 ranks · 3 divisions each", "9 escalões · 3 divisões cada")}</div><h1>${L("Ranks", "Escalões")}</h1></div><span class="muted num" style="font-size:var(--t-sm)">${L("You", "O seu escalão")} · ${esc(SUBJ_NAME[SUBJ])}: ${esc(rk.label)} · ${REC().rating}</span></div>
   ${subjSwitch()}
   <section class="section" style="margin-top:20px"><div class="ladder">${rungs}</div></section>
   <section class="section">
     <h2>${L("How rating works", "Como funciona o rating")}</h2>
-    <div class="prose"><p>${L("Each problem has a fixed rating set by its difficulty. Attempting it is an Elo match between you and the problem. Your chance of winning is", "Cada problema tem um rating fixo, definido pela sua dificuldade. Tentar resolvê-lo é uma partida Elo entre si e o problema. A sua probabilidade de ganhar é")}</p></div>
+    <div class="prose"><p>${L("Each problem is worth a fixed number of points, set by its difficulty: the harder the problem, the more it is worth. The points are the same for everyone, whatever your rating.", "Cada problema vale um número fixo de pontos, definido pela sua dificuldade: quanto mais difícil, mais vale. Os pontos são os mesmos para todos, seja qual for o seu rating.")}</p></div>
     <div class="formula">
-      <div class="eq" id="eq1">${L("$$E=\\frac{1}{1+10^{(R_{\\text{problem}}-R_{\\text{you}})/400}}$$", "$$E=\\frac{1}{1+10^{(R_{\\text{problema}}-R_{\\text{jogador}})/400}}$$")}</div>
       <div class="prose">${L(`
-        <p><strong>Solve it:</strong> you gain $K(1-E)$, halved if you opened the hint.</p>
-        <p><strong>Miss it:</strong> you lose $KE$ and the problem locks for 24 hours. After the cooldown it is rated again, as many times as it takes.</p>
+        <p><strong>Solve it:</strong> you gain its points, or half of them (rounded) if you opened the hint.</p>
+        <p><strong>Miss it:</strong> you lose its points and the problem locks for 24 hours. After the cooldown it counts again, as many times as it takes.</p>
         <p><strong>Reveal the solution:</strong> counts as a miss (free during a cooldown) and takes the problem off the ladder for good.</p>
-        <p><strong>K-factor:</strong> 80 for your first 10 rated results (placement), 56 through 40, then 40. Upsets pay big; beating problems far below you pays almost nothing.</p>
-        <p><strong>Two subjects:</strong> Calculus and Linear Algebra are rated separately. Each has its own rating, rank, K-factor, leaderboard and season badges, and both start at ${START}.</p>`, `
-        <p><strong>Acertar:</strong> ganha $K(1-E)$, ou metade disso se tiver aberto a sugestão.</p>
-        <p><strong>Errar:</strong> perde $KE$ e o problema fica bloqueado durante 24 horas. Depois da pausa volta a contar, tantas vezes quantas forem precisas.</p>
+        <p><strong>Two subjects:</strong> Calculus and Linear Algebra are rated separately. Each has its own rating, rank, leaderboard and season badges, and both start at ${START}. Clearing every easy problem of a subject takes you to about Silver, the medium ones to Emerald, the hard ones to Grandmaster, and the IMO track to Limitless.</p>`, `
+        <p><strong>Acertar:</strong> ganha os pontos do problema, ou metade (arredondada) se tiver aberto a sugestão.</p>
+        <p><strong>Errar:</strong> perde os pontos do problema e ele fica bloqueado durante 24 horas. Depois da pausa volta a contar, tantas vezes quantas forem precisas.</p>
         <p><strong>Revelar a resolução:</strong> conta como um erro (sem custo durante uma pausa) e tira o problema da escada para sempre.</p>
-        <p><strong>Fator K:</strong> 80 nos primeiros 10 resultados (colocação), 56 até ao 40.º, e depois 40. As surpresas pagam muito; resolver problemas muito abaixo do seu nível quase não dá nada.</p>
-        <p><strong>Duas disciplinas:</strong> Cálculo e Álgebra Linear têm ratings separados. Cada uma tem o seu rating, escalão, fator K, classificação e emblemas de época, e ambas começam em ${START}.</p>`)}
+        <p><strong>Duas disciplinas:</strong> Cálculo e Álgebra Linear têm ratings separados. Cada uma tem o seu rating, escalão, classificação e emblemas de época, e ambas começam em ${START}. Resolver todos os problemas fáceis de uma disciplina leva-o até cerca de Prata, os médios até Esmeralda, os difíceis até Grão-Mestre, e o percurso IMO até Ilimitado.</p>`)}
       </div>
     </div>
   </section>
@@ -2383,7 +2437,7 @@ function renderRanks() {
     </div>
   </section>
   <section class="section">
-    <h2>${L("Problem ratings by track", "Rating dos problemas por percurso")}</h2>
+    <h2>${L("Problem ratings and points by track", "Rating e pontos dos problemas por percurso")}</h2>
     <div class="ktable">${bands}</div>
   </section>
   <section class="section">
