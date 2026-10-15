@@ -680,7 +680,7 @@ const TIERS = [
   { glyph: "Ω", c: "#ff5270" },
   { glyph: "∞", c: "#ffffff" }
 ].map((T, i) => Object.defineProperty(T, "name", { get: () => TIER_NAMES[LANG][i], enumerable: true }));
-const DIVS = ["III", "II", "I"];
+const DIVS = ["I", "II", "III"];
 const FLOORS = [0, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600, 2700, 2800, 2900];
 const START = 500;
 
@@ -1403,7 +1403,7 @@ function drawChart(hostId = "chart", series = null, emptyMsg = null) {
   const W = Math.max(280, host.clientWidth), H = 220, padL = 44, padR = 12, padT = 12, padB = 24;
   const pts = series || [START, ...REC().hist.map(h => h.r)];
   if (pts.length < 2) {
-    host.innerHTML = `<div class="chart-empty">${emptyMsg || L(`Your rating line starts with your first submission.<br>Everyone begins at ${START}, Iron I.`, `A sua linha de rating começa com a primeira resposta.<br>Todos começam em ${START}, Ferro I.`)}</div>`;
+    host.innerHTML = `<div class="chart-empty">${emptyMsg || L(`Your rating line starts with your first submission.<br>Everyone begins at ${START}, ${rankOf(START).label}.`, `A sua linha de rating começa com a primeira resposta.<br>Todos começam em ${START}, ${rankOf(START).label}.`)}</div>`;
     return;
   }
   const now = pts[pts.length - 1];
@@ -2709,7 +2709,7 @@ function renderProfile(handle) {
     <h2>${L("Recent solves", "Resolvidos recentemente")}</h2>
     <div class="steps">${recent.length ? recent.map(x => { const p = BY_SLUG.get(x.p); return `<a class="step" href="#p-${p.s}"><span class="pid num">${pnum(p)}</span><span class="ttl">${esc(ptitle(p))}</span><span class="diff ${p.d}">${DIFF_LABEL[p.d]}</span><span class="stake num muted">${numOr(x.t, 0) ? esc(new Date(x.t).toLocaleDateString(LOCALE(), { day: "numeric", month: "short" })) : ""}</span></a>`; }).join("") : `<div class="empty">${isMe ? L(`Nothing solved yet. <a href="#problems">Pick a problem</a>.`, `Ainda nada resolvido. <a href="#problems">Escolha um problema</a>.`) : L("No solves yet.", "Ainda sem problemas resolvidos.")}</div>`}</div>
   </section>`;
-  const emptyMsg = isMe ? L(`Your rating line starts with your first submission.<br>Everyone begins at ${START}, Iron I.`, `A sua linha de rating começa com a primeira resposta.<br>Todos começam em ${START}, Ferro I.`) : L("No rated results yet.", "Ainda sem resultados com rating.");
+  const emptyMsg = isMe ? L(`Your rating line starts with your first submission.<br>Everyone begins at ${START}, ${rankOf(START).label}.`, `A sua linha de rating começa com a primeira resposta.<br>Todos começam em ${START}, ${rankOf(START).label}.`) : L("No rated results yet.", "Ainda sem resultados com rating.");
   bindLang(app);
   const so = document.getElementById("pSignOut");
   if (so) so.addEventListener("click", signOut);
