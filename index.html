@@ -625,8 +625,8 @@ const PBY = Object.fromEntries(SUBJECTS.map(s => [s, ALL_PROBS.filter(p => p.sub
 SUBJECTS.forEach(s => PBY[s].forEach((p, i) => { p.n = i + 1; }));
 /* Every problem is worth a fixed number of points: you gain them when you solve it and lose them when you miss it.
    Points grow with the square of the problem's rating; each subject has its own scale (so that both are worth the same in
-   total), boosted 8.8x: most of a subject's easy problems are enough to reach Limitless, and ratings keep climbing past it. */
-const PTS_BOOST = 8.8;
+   total), boosted 7.92x: most of a subject's easy problems are enough to reach Limitless, and ratings keep climbing past it. */
+const PTS_BOOST = 7.92;
 const PTS_SCALE = { calc: 0.0358 * PTS_BOOST, la: 0.0623 * PTS_BOOST };
 const ptsFor = (r, sub) => Math.max(1, Math.round((PTS_SCALE[sub] || PTS_SCALE.calc) * (r / 100) ** 2));
 ALL_PROBS.forEach(p => { p.pts = ptsFor(p.r, p.sub); });
