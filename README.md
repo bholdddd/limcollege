@@ -1,6 +1,6 @@
 # lim.college
 
-A ranked calculus problem ladder: 368 problems, Elo rating, nine ranks, concept explainers, player profiles and a leaderboard.
+A ranked math problem ladder in two subjects, each with its own rating, rank and leaderboard: 368 calculus problems and 208 linear algebra problems, fixed points per problem, nine ranks, monthly seasons, concept explainers, player profiles, English and Portuguese.
 
 It's a static site (no build step). Accounts, the leaderboard and profiles use a free [Supabase](https://supabase.com) project.
 
@@ -11,12 +11,13 @@ supabase.js     the Supabase browser library (v2.117.2), bundled so the site has
 schema.sql      one-time database setup
 vercel.json     hosting settings
 favicon.svg     tab icon
+prof/           the professor's worked solutions for IST mode (images, loaded on demand)
 ```
 
 ## 1. Set up Supabase (about 5 minutes)
 
 1. Create a free account at supabase.com and click **New project**. Any name and region (pick one close to your players); save the database password somewhere.
-2. When the project is ready, open **SQL Editor → New query**, paste the whole of `schema.sql`, and click **Run**. You should see "Success. No rows returned".
+2. When the project is ready, open **SQL Editor → New query**, paste the whole of `schema.sql`, and click **Run**. You should see "Success. No rows returned". (Updating an existing site? Run the whole file again: it only adds what's missing.)
 3. Open **Authentication → Sign In / Providers → Email**. Email sign-in is on by default. Decide on **Confirm email**:
    - On (default): new players must click a link in their inbox before they can sign in. Supabase's built-in mailer only sends a few emails per hour, which is fine for a small group.
    - Off: players can sign in right after creating an account. Simplest for a class or a group of friends.
@@ -63,5 +64,6 @@ This makes confirmation and password-reset emails link to your site instead of `
 ## Good to know
 
 - Answers are checked in the visitor's browser, so a technically minded player could fake a rating. Fine for friends and classmates; a public competition would need server-side checking.
+- **IST mode**: players whose profile school is IST or Técnico get the course week (calculus) or Ficha (linear algebra) on University problems, and Solution shows the professor's worked solution without counting as a miss; the problem comes back with new numbers worth half the points. Upload the `prof/` folder together with `index.html`, or those solutions won't load.
 - Players who never sign in can still play: their progress stays in their browser. When they create an account, that progress moves into it.
 - The free Supabase tier pauses a project after about a week without any visits. Opening the dashboard wakes it up.
